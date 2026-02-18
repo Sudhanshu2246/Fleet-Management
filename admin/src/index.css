@@ -1,0 +1,216 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Fleetiq  — Global Stylesheet
+   Tailwind CSS v4 · CSS-first configuration (no tailwind.config.js needed)
+───────────────────────────────────────────────────────────────────────────── */
+
+@import "tailwindcss";
+
+/* ── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ── Tailwind v4: Design Token Registration (@theme) ─────────────────────── */
+@theme {
+  /* Fonts */
+  --font-sans: "DM Sans", sans-serif;
+  --font-sora: "Sora", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Fleetiq Brand Colors */
+  --color-fleet-dark:   #191C24;
+  --color-fleet-pink:   #AF1763;
+  --color-fleet-blue:   #0D6EFD;
+  --color-fleet-green:  #198754;
+  --color-fleet-cyan:   #0DCAF0;
+  --color-fleet-red:    #AB2E3C;
+  --color-fleet-yellow: #FFC107;
+
+  /* Background layers */
+  --color-bg-base:   #0f1117;
+  --color-bg-card:   #191C24;
+  --color-bg-card2:  #1e2230;
+  --color-bg-border: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --color-text-primary:   #f0f2f8;
+  --color-text-secondary: #a8b0c8;
+  --color-text-muted:     #5a6380;
+
+  /* Border radius */
+  --radius-card: 12px;
+  --radius-btn:  8px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow:    0 4px 14px rgba(175, 23, 99, 0.4);
+
+  /* Animations */
+  --animate-fade-in:    fade-in 0.3s ease forwards;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(175, 23, 99, 0.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(175, 23, 99, 0); }
+}
+
+/* ── Base Reset ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #2a2f42; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-fleet-pink); }
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection { background: rgba(175, 23, 99, 0.25); color: var(--color-text-primary); }
+
+/* ── Focus ────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-fleet-pink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Shared Component Classes (@layer components) ─────────────────────────── */
+@layer components {
+
+  /* Card */
+  .fleet-card {
+    background: var(--color-bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-card);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .fleet-card:hover {
+    border-color: rgba(175, 23, 99, 0.25);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Primary Button */
+  .fleet-btn-primary {
+    background: var(--color-fleet-pink);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: var(--shadow-glow);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fleet-btn-primary:hover {
+    background: #8d1250;
+    transform: translateY(-1px);
+  }
+
+  /* Ghost Button */
+  .fleet-btn-ghost {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-btn);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fleet-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: var(--color-text-primary);
+  }
+
+  /* Badge base */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-active  { background: rgba(25, 135, 84, 0.15);  color: #198754; border: 1px solid rgba(25, 135, 84, 0.3); }
+  .badge-idle    { background: rgba(255, 193, 7, 0.12);  color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
+  .badge-offline { background: rgba(171, 46, 60, 0.12);  color: #AB2E3C; border: 1px solid rgba(171, 46, 60, 0.3); }
+  .badge-live    { background: rgba(175, 23, 99, 0.15);  color: #AF1763; border: 1px solid rgba(175, 23, 99, 0.3); }
+  .badge-info    { background: rgba(13, 110, 253, 0.12); color: #0D6EFD; border: 1px solid rgba(13, 110, 253, 0.3); }
+  .badge-cyan    { background: rgba(13, 202, 240, 0.12); color: #0DCAF0; border: 1px solid rgba(13, 202, 240, 0.3); }
+  .badge-warning { background: rgba(255, 193, 7, 0.12);  color: #FFC107; border: 1px solid rgba(255, 193, 7, 0.3); }
+  .badge-danger  { background: rgba(171, 46, 60, 0.12);  color: #AB2E3C; border: 1px solid rgba(171, 46, 60, 0.3); }
+
+  /* Page wrapper used inside every page component */
+  .page-wrapper {
+    padding: 24px 28px;
+    min-height: 100%;
+    background: var(--color-bg-base);
+  }
+
+  /* Page heading block */
+  .page-heading {
+    margin-bottom: 22px;
+  }
+  .page-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+  }
+  .page-breadcrumb-sep {
+    color: #2a2f42;
+  }
+  .page-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-family: var(--font-sora);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0;
+  }
+
+  /* Nav item active state */
+  .nav-item-active {
+    background: linear-gradient(90deg, rgba(175, 23, 99, 0.18) 0%, rgba(175, 23, 99, 0.04) 100%);
+  }
+}

@@ -4,6 +4,7 @@ import Dashboard from "../pages/admin/Dashboard";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Registration";
 import Vehicles from "../pages/admin/Vehicles";
+import Home from "../pages/Landing/Home";
 
 /**
  * App Router
@@ -58,6 +59,7 @@ export const appRouter = createBrowserRouter([
       { path: "settings", element: <PlaceholderPage title="Settings" /> },
     ],
   },
+  {path: "/home", element: <Home />},
 ]);
 
 /* ── Temporary placeholder for unbuilt pages ────────────────────────────── */

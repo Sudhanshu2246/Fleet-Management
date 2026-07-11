@@ -3,10 +3,13 @@
    Tailwind CSS v4 · CSS-first configuration (no tailwind.config.js needed)
 ───────────────────────────────────────────────────────────────────────────── */
 
-@import "tailwindcss";
 
 /* ── Google Fonts ─────────────────────────────────────────────────────────── */
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+
+@import "tailwindcss";
+
 
 /* ── Tailwind v4: Design Token Registration (@theme) ─────────────────────── */
 @theme {
@@ -15,36 +18,27 @@
   --font-sora: "Sora", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* Fleetiq Brand Colors */
-  --color-fleet-dark:   #191C24;
-  --color-fleet-pink:   #AF1763;
-  --color-fleet-blue:   #0D6EFD;
-  --color-fleet-green:  #198754;
-  --color-fleet-cyan:   #0DCAF0;
-  --color-fleet-red:    #AB2E3C;
-  --color-fleet-yellow: #FFC107;
-
   /* Background layers */
   --color-bg-base:   #0f1117;
   --color-bg-card:   #191C24;
   --color-bg-card2:  #1e2230;
   --color-bg-border: rgba(255, 255, 255, 0.06);
 
-  /* Text */
-  --color-text-primary:   #f0f2f8;
-  --color-text-secondary: #a8b0c8;
-  --color-text-muted:     #5a6380;
+}
 
-  /* Border radius */
-  --radius-card: 12px;
-  --radius-btn:  8px;
+/* GLOBAL SCROLLBAR HIDE */
 
-  /* Shadows */
-  --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.3);
-  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow:    0 4px 14px rgba(175, 23, 99, 0.4);
+/* Chrome, Safari, Edge */
+*::-webkit-scrollbar {
+  display: none;
+}
 
-  /* Animations */
-  --animate-fade-in:    fade-in 0.3s ease forwards;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE/Edge legacy */
+* {
+  -ms-overflow-style: none;
 }

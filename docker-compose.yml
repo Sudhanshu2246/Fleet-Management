@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./backend
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongodb:27017/FleetManagement
+    depends_on:
+      - mongodb
+
+  admin:
+    build: ./admin
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

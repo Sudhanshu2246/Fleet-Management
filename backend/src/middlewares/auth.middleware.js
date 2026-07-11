@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/user.model");
+const { User, SuperAdmin } = require("../index/index.model");
 
 exports.protect = async (req, res, next) => {
   try {
@@ -24,8 +24,20 @@ exports.protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user to request
-    req.user = await User.findById(decoded.id).select("-password");
+    let user = await User.findByPk(decoded.id, { attributes: { exclude: ['password'] } });
+    
+    if (!user && decoded.role === 'super_admin') {
+      user = await SuperAdmin.findByPk(decoded.id, { attributes: { exclude: ['password'] } });
+    }
 
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized, user no longer exists",
+      });
+    }
+
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({

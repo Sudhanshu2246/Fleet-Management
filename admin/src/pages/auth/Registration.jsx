@@ -1,844 +1,1536 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  MdGpsFixed,
-  MdEmail,
-  MdLock,
-  MdVisibility,
-  MdVisibilityOff,
-  MdPerson,
-  MdBusiness,
-  MdPhone,
-  MdArrowForward,
-  MdArrowBack,
-  MdCheckCircle,
-  MdShield,
-  MdCheck,
-} from "react-icons/md";
-import { RiSignalTowerFill } from "react-icons/ri";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { login, registerCompany } from "../../Redux/Thunks/auth.thunks";
+import { useNavigate } from "react-router-dom";
+/* ─── DESIGN TOKENS (matching home page) ──────────────────────────────────────── */
+export const C = {
+  dark: "#0B0F19",
+  darker: "#060912",
+  card: "#111827",
+  card2: "#1a2332",
+  border: "rgba(255,255,255,0.06)",
+  text: "#f0f2f8",
+  textSec: "#a0aec0",
+  textMut: "#5a6380",
+  cyan: "#22d3ee",
+  blue: "#3b82f6",
+  violet: "#8b5cf6",
+  green: "#10b981",
+  red: "#ef4444",
+  yellow: "#f59e0b",
+};
 
-/* ── Step definitions ─────────────────────────────────────────────────────── */
-const STEPS = [
-  { id: 1, label: "Account",      icon: MdPerson   },
-  { id: 2, label: "Organisation", icon: MdBusiness },
-  { id: 3, label: "Security",     icon: MdShield   },
-];
+/* ─── ICON PRIMITIVES (unchanged) ────────────────────────────────────────────── */
+export const Ico = ({
+  d,
+  size = 20,
+  color = "currentColor",
+  fill = "none",
+  stroke = 1.6,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke={color}
+    strokeWidth={stroke}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {Array.isArray(d) ? (
+      d.map((p, i) => <path key={i} d={p} />)
+    ) : (
+      <path d={d} />
+    )}
+  </svg>
+);
 
-/* ── Role options ─────────────────────────────────────────────────────────── */
-const ROLES = [
-  { value: "super_admin", label: "Super Admin",   desc: "Full system access"         },
-  { value: "fleet_mgr",   label: "Fleet Manager", desc: "Manage vehicles & tracking" },
-  { value: "dispatcher",  label: "Dispatcher",    desc: "Monitor live operations"    },
-];
+export const Icons = {
+  menu: "M4 6h16M4 12h16M4 18h16",
+  x: "M18 6L6 18M6 6l12 12",
+  map: [
+    "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7",
+  ],
+  zap: "M13 10V3L4 14h7v7l9-11h-7z",
+  shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],
+  chart: ["M18 20V10", "M12 20V4", "M6 20v-6"],
+  bell: [
+    "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9",
+    "M13.73 21a2 2 0 01-3.46 0",
+  ],
+  truck: [
+    "M1 3h15v13H1z",
+    "M16 8h4l3 3v5h-7V8z",
+    "M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z",
+    "M18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z",
+  ],
+  user: [
+    "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2",
+    "M12 11a4 4 0 100-8 4 4 0 000 8z",
+  ],
+  lock: [
+    "M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z",
+    "M7 11V7a5 5 0 0110 0v4",
+  ],
+  mail: [
+    "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z",
+    "M22 6l-10 7L2 6",
+  ],
+  phone: [
+    "M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z",
+  ],
+  check: "M20 6L9 17l-5-5",
+  arrow: "M5 12h14M12 5l7 7-7 7",
+  eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  eyeOff: [
+    "M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24",
+    "M1 1l22 22",
+  ],
+  database: [
+    "M12 2C6.48 2 2 3.79 2 6s4.48 4 10 4 10-1.79 10-4-4.48-4-10-4z",
+    "M2 6v6c0 2.21 4.48 4 10 4s10-1.79 10-4V6",
+    "M2 12v6c0 2.21 4.48 4 10 4s10-1.79 10-4v-6",
+  ],
+  star: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  building: [
+    "M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3",
+  ],
+};
 
-export default function Register() {
-  const navigate = useNavigate();
-
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
-
-  /* Form state */
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    orgName: "",
-    orgSize: "",
-    role: "super_admin",
-    password: "",
-    confirmPassword: "",
-    agree: false,
-  });
-
-  /* Password visibility */
-  const [showPass,    setShowPass]    = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  /* Focus states */
-  const [focused, setFocused] = useState({});
-  const focusProps = (name) => ({
-    onFocus: () => setFocused((f) => ({ ...f, [name]: true })),
-    onBlur:  () => setFocused((f) => ({ ...f, [name]: false })),
-  });
-
-  const set = (key) => (e) =>
-    setForm((f) => ({ ...f, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
-
-  /* Password strength */
-  const passStrength = (() => {
-    const p = form.password;
-    if (!p) return 0;
-    let s = 0;
-    if (p.length >= 8)          s++;
-    if (/[A-Z]/.test(p))        s++;
-    if (/[0-9]/.test(p))        s++;
-    if (/[^A-Za-z0-9]/.test(p)) s++;
-    return s;
-  })();
-
-  const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"][passStrength];
-  const strengthColor = ["", "#AB2E3C", "#FFC107", "#0DCAF0", "#198754"][passStrength];
-
-  /* Validation per step */
-  const validate = () => {
-    if (step === 1) {
-      if (!form.firstName.trim()) return "First name is required.";
-      if (!form.email.trim())     return "Email address is required.";
-      if (!/\S+@\S+\.\S+/.test(form.email)) return "Enter a valid email address.";
-    }
-    if (step === 2) {
-      if (!form.orgName.trim()) return "Organisation name is required.";
-      if (!form.orgSize)        return "Please select your fleet size.";
-    }
-    if (step === 3) {
-      if (!form.password)                           return "Password is required.";
-      if (form.password.length < 8)                 return "Password must be at least 8 characters.";
-      if (form.password !== form.confirmPassword)   return "Passwords do not match.";
-      if (!form.agree)                              return "You must accept the terms to continue.";
-    }
-    return "";
-  };
-
-  const handleNext = () => {
-    const err = validate();
-    if (err) return setError(err);
-    setError("");
-    setStep((s) => s + 1);
-  };
-
-  const handleBack = () => {
-    setError("");
-    setStep((s) => s - 1);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const err = validate();
-    if (err) return setError(err);
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1800));
-    setLoading(false);
-    setDone(true);
-  };
-
-  /* ── Success screen ─────────────────────────────────────────────────── */
-  if (done) {
-    return (
-      <div style={{ ...styles.root, justifyContent: "center", alignItems: "center" }}>
-        <div style={styles.successCard}>
-          <div style={styles.successIcon}>
-            <MdCheckCircle size={40} color="#198754" />
-          </div>
-          <h2 style={{ ...styles.formHeading, textAlign: "center", marginBottom: 8 }}>
-            Account Created!
-          </h2>
-          <p style={{ ...styles.formSub, textAlign: "center", marginBottom: 28 }}>
-            Welcome to Fleetiq. Your organisation <strong style={{ color: "#f0f2f8" }}>{form.orgName}</strong> has been set up successfully.
-          </p>
-          <button
-            className="fleet-btn-primary"
-            style={{ width: "100%", justifyContent: "center", height: 46, fontSize: 14 }}
-            onClick={() => navigate("/login")}
-          >
-            Go to Login <MdArrowForward size={16} />
-          </button>
+// Shared field components (hoisted to keep focus/state stable across renders)
+export const InputField = ({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  icon,
+  required,
+  rightEl,
+  value,
+  onChange,
+  error,
+}) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label
+      style={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: C.textSec,
+        letterSpacing: "0.05em",
+      }}
+    >
+      {label}
+      {required && <span style={{ color: C.red, marginLeft: 3 }}>*</span>}
+    </label>
+    <div style={{ position: "relative" }}>
+      {icon && (
+        <div
+          style={{
+            position: "absolute",
+            left: 13,
+            top: "50%",
+            transform: "translateY(-50%)",
+            pointerEvents: "none",
+            opacity: 0.4,
+          }}
+        >
+          <Ico d={Icons[icon]} size={15} color={C.textSec} />
         </div>
-        <style>{AUTH_STYLES}</style>
+      )}
+      <input
+        name={name}
+        type={type}
+        value={value || ""}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          background: C.dark,
+          border: `1px solid ${error ? C.red + "80" : C.border}`,
+          borderRadius: 10,
+          color: C.text,
+          fontSize: 14,
+          padding: icon ? "11px 14px 11px 38px" : "11px 14px",
+          paddingRight: rightEl ? 42 : 14,
+          outline: "none",
+          transition: "border-color 0.2s",
+        }}
+        onFocus={(e) =>
+          (e.target.style.borderColor = error ? C.red + "80" : C.cyan + "60")
+        }
+        onBlur={(e) =>
+          (e.target.style.borderColor = error ? C.red + "80" : C.border)
+        }
+      />
+      {rightEl}
+    </div>
+    {error && <span style={{ fontSize: 11, color: C.red }}>{error}</span>}
+  </div>
+);
+
+export const SelectField = ({
+  label,
+  name,
+  options,
+  required,
+  value,
+  onChange,
+  error,
+}) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label
+      style={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: C.textSec,
+        letterSpacing: "0.05em",
+      }}
+    >
+      {label}
+      {required && <span style={{ color: C.red, marginLeft: 3 }}>*</span>}
+    </label>
+    <select
+      name={name}
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        background: C.dark,
+        border: `1px solid ${error ? C.red + "80" : C.border}`,
+        borderRadius: 10,
+        color: value ? C.text : C.textMut,
+        fontSize: 14,
+        padding: "11px 14px",
+        outline: "none",
+        cursor: "pointer",
+        appearance: "none",
+        WebkitAppearance: "none",
+      }}
+      onFocus={(e) => (e.target.style.borderColor = C.cyan + "60")}
+      onBlur={(e) =>
+        (e.target.style.borderColor = error ? C.red + "80" : C.border)
+      }
+    >
+      <option
+        value=""
+        disabled
+        style={{ background: C.card, color: C.textMut }}
+      >
+        Select fleet size
+      </option>
+      {options.map((o) => (
+        <option
+          key={o.value}
+          value={o.value}
+          style={{ background: C.card, color: C.text }}
+        >
+          {o.label}
+        </option>
+      ))}
+    </select>
+    {error && <span style={{ fontSize: 11, color: C.red }}>{error}</span>}
+  </div>
+);
+
+export const RightContent = ({ mode, success, step }) => {
+  if (mode === "login") {
+    return (
+      <div style={{ padding: "32px 24px" }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 20,
+            boxShadow: `0 8px 20px ${C.cyan}40`,
+          }}
+        >
+          <Ico d={Icons.truck} color="#fff" size={24} />
+        </div>
+        <h2
+          style={{
+            fontSize: 24,
+            fontWeight: 700,
+            color: C.text,
+            marginBottom: 12,
+            letterSpacing: -0.5,
+          }}
+        >
+          Welcome back to FleetIQ
+        </h2>
+        <p
+          style={{
+            color: C.textSec,
+            fontSize: 14,
+            lineHeight: 1.6,
+            marginBottom: 24,
+          }}
+        >
+          Sign in to access your fleet command center, monitor vehicles in
+          real‑time, and manage drivers.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {[
+            { icon: "map", text: "Live GPS tracking" },
+            { icon: "zap", text: "Speed & safety alerts" },
+            { icon: "shield", text: "Driver behavior analytics" },
+          ].map((item, i) => (
+            <div
+              key={i}
+              style={{ display: "flex", alignItems: "center", gap: 12 }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: `${C.cyan}15`,
+                  border: `1px solid ${C.cyan}30`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ico d={Icons[item.icon]} size={16} color={C.cyan} />
+              </div>
+              <span style={{ color: C.textSec, fontSize: 14 }}>
+                {item.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div style={{ padding: "32px 24px", textAlign: "center" }}>
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring" }}
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            background: `${C.green}20`,
+            border: `1px solid ${C.green}40`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 20px",
+          }}
+        >
+          <Ico d={Icons.check} color={C.green} size={32} stroke={2.5} />
+        </motion.div>
+        <h3
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: C.text,
+            marginBottom: 12,
+          }}
+        >
+          You're all set!
+        </h3>
+        <p style={{ color: C.textSec, fontSize: 14, lineHeight: 1.6 }}>
+          Your company has been registered. Check your email to verify your
+          account.
+        </p>
       </div>
     );
   }
 
   return (
-    <div style={styles.root}>
-      {/* ── Left panel ─────────────────────────────────────────────────── */}
-      <div style={styles.panel}>
-        <div style={styles.grid} />
-        <div style={{ ...styles.blob, top: "5%",   left: "15%",  background: "rgba(13,202,240,0.12)", width: 300, height: 300 }} />
-        <div style={{ ...styles.blob, bottom: "10%", right: "5%", background: "rgba(175,23,99,0.15)",  width: 280, height: 280 }} />
-        <div style={{ ...styles.blob, top: "45%",  left: "40%",   background: "rgba(13,110,253,0.08)", width: 220, height: 220, transform: "translate(-50%,-50%)" }} />
-
-        <div style={styles.panelContent}>
-          {/* Logo */}
-          <div style={styles.logo}>
-            <div style={styles.logoIcon}>
-              <MdGpsFixed size={22} color="#fff" />
-            </div>
-            <div>
-              <div style={styles.logoName}>Fleetiq</div>
-              <div style={styles.logoBadge}>ADMIN</div>
-            </div>
+    <div style={{ padding: "32px 24px" }}>
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 20,
+          boxShadow: `0 8px 20px ${C.cyan}40`,
+        }}
+      >
+        <Ico d={Icons.building} color="#fff" size={24} />
+      </div>
+      <h2
+        style={{
+          fontSize: 24,
+          fontWeight: 700,
+          color: C.text,
+          marginBottom: 12,
+          letterSpacing: -0.5,
+        }}
+      >
+        Join 500+ travel companies
+      </h2>
+      <p
+        style={{
+          color: C.textSec,
+          fontSize: 14,
+          lineHeight: 1.6,
+          marginBottom: 24,
+        }}
+      >
+        Register your company in two simple steps and start managing your fleet
+        with real‑time intelligence.
+      </p>
+      <div style={{ marginBottom: 24 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: step === 1 ? `${C.cyan}20` : `${C.green}20`,
+              border: `1px solid ${step === 1 ? C.cyan : C.green}40`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              color: step === 1 ? C.cyan : C.green,
+              fontSize: 14,
+            }}
+          >
+            1
           </div>
-
-          {/* Main copy */}
-          <div style={{ marginTop: "auto" }}>
-            <div style={styles.panelEyebrow}>
-              <RiSignalTowerFill size={13} color="#0DCAF0" />
-              <span>Get Started Today</span>
+          <div>
+            <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>
+              Admin Account
             </div>
-            <h1 style={styles.panelHeading}>
-              Start tracking<br />
-              <span style={{ color: "#0DCAF0" }}>your fleet now.</span>
-            </h1>
-            <p style={styles.panelSub}>
-              Set up your organisation in under 3 minutes. Connect your first device and go live immediately.
-            </p>
-
-            {/* Steps preview */}
-            <div style={{ marginTop: 36, display: "flex", flexDirection: "column", gap: 16 }}>
-              {STEPS.map((s) => {
-                const Icon = s.icon;
-                const isComplete = step > s.id;
-                const isActive   = step === s.id;
-                return (
-                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 9,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: isComplete
-                          ? "rgba(25,135,84,0.18)"
-                          : isActive
-                          ? "rgba(175,23,99,0.2)"
-                          : "rgba(255,255,255,0.05)",
-                        border: `1.5px solid ${isComplete ? "rgba(25,135,84,0.4)" : isActive ? "rgba(175,23,99,0.4)" : "rgba(255,255,255,0.07)"}`,
-                        transition: "all 0.3s",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {isComplete
-                        ? <MdCheck size={16} color="#198754" />
-                        : <Icon size={16} color={isActive ? "#AF1763" : "rgba(255,255,255,0.3)"} />
-                      }
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: isActive ? 600 : 400,
-                          color: isComplete ? "#198754" : isActive ? "#f0f2f8" : "rgba(255,255,255,0.3)",
-                          transition: "color 0.3s",
-                        }}
-                      >
-                        Step {s.id}: {s.label}
-                      </div>
-                      {isActive && (
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
-                          Currently filling
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ fontSize: 12, color: C.textMut }}>
+              Your login credentials
             </div>
           </div>
         </div>
-        <div style={styles.panelFade} />
-      </div>
-
-      {/* ── Right: Multi-step form ──────────────────────────────────────── */}
-      <div style={styles.formSide}>
-        <div style={styles.formCard}>
-
-          {/* Mobile logo */}
-          <div style={{ ...styles.mobileLogo, marginBottom: 24 }}>
-            <div style={styles.logoIcon}>
-              <MdGpsFixed size={18} color="#fff" />
-            </div>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#f0f2f8", fontFamily: "Sora, sans-serif" }}>
-             Fleetiq
-            </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: step === 2 ? `${C.cyan}20` : `${C.textMut}20`,
+              border: `1px solid ${step === 2 ? C.cyan : C.border}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              color: step === 2 ? C.cyan : C.textMut,
+              fontSize: 14,
+            }}
+          >
+            2
           </div>
+          <div>
+            <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>
+              Company Details
+            </div>
+            <div style={{ fontSize: 12, color: C.textMut }}>
+              Your organization profile
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          background: C.card2,
+          borderRadius: 12,
+          padding: 16,
+          border: `1px solid ${C.border}`,
+        }}
+      >
+        <div style={{ display: "flex", gap: 10 }}>
+          <Ico d={Icons.shield} size={18} color={C.cyan} />
+          <div>
+            <div
+              style={{
+                fontWeight: 600,
+                color: C.text,
+                fontSize: 13,
+                marginBottom: 4,
+              }}
+            >
+              Secure & Compliant
+            </div>
+            <div style={{ fontSize: 12, color: C.textSec, lineHeight: 1.5 }}>
+              Your data is encrypted and never shared. GST details are verified
+              securely.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-          {/* Progress bar */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-              {STEPS.map((s) => (
-                <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+const RegisterCompanyModal = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const {
+    loading: authLoading,
+    error,
+    success: authSuccess,
+  } = useSelector((state) => state.auth);
+  const [mode, setMode] = useState("login");
+  const [step, setStep] = useState(1);
+  const loading = authLoading;
+  const [success, setSuccess] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [form, setForm] = useState({
+    // Login fields
+    email: "",
+    password: "",
+    remember: false,
+    // Registration fields
+    name: "",
+    phone: "",
+    companyName: "",
+    companyGST: "",
+    companyAddress: "",
+    companySize: "",
+    gstFile: null,
+  });
+  const [errors, setErrors] = useState({});
+  const fileRef = useRef(null);
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const err = (k, msg) => setErrors((e) => ({ ...e, [k]: msg }));
+  const clearErr = (k) =>
+    setErrors((e) => {
+      const n = { ...e };
+      delete n[k];
+      return n;
+    });
+
+  const validateLogin = () => {
+    let ok = true;
+    if (!form.email.trim()) {
+      err("email", "Email is required");
+      ok = false;
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      err("email", "Invalid email address");
+      ok = false;
+    }
+    if (!form.password) {
+      err("password", "Password is required");
+      ok = false;
+    }
+    return ok;
+  };
+
+  const validateStep1 = () => {
+    let ok = true;
+    if (!form.name.trim()) {
+      err("name", "Full name is required");
+      ok = false;
+    }
+    if (!form.email.trim()) {
+      err("email", "Email is required");
+      ok = false;
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      err("email", "Invalid email address");
+      ok = false;
+    }
+    if (!form.password) {
+      err("password", "Password is required");
+      ok = false;
+    } else if (form.password.length < 8) {
+      err("password", "Min 8 characters");
+      ok = false;
+    }
+    return ok;
+  };
+
+  const validateStep2 = () => {
+    let ok = true;
+    if (!form.companyName.trim()) {
+      err("companyName", "Company name is required");
+      ok = false;
+    }
+    if (!form.companySize) {
+      err("companySize", "Please select fleet size");
+      ok = false;
+    }
+    return ok;
+  };
+
+  const handleLogin = async () => {
+    setErrors({});
+    if (!validateLogin()) return;
+
+    const res = await dispatch(
+      login({
+        email: form.email,
+        password: form.password,
+      }),
+    );
+
+    if (res?.meta?.requestStatus === "fulfilled") {
+      sessionStorage.setItem("token", res.payload.token); 
+      sessionStorage.setItem("user", JSON.stringify(res.payload.user));
+      handleClose();
+      navigate("/dashboard");
+    } else {
+      err("password", res.payload?.message || "Login failed");
+    }
+  };
+  const handleNext = () => {
+    setErrors({});
+    if (validateStep1()) setStep(2);
+  };
+
+  const handleSubmit = async () => {
+    setErrors({});
+    if (!validateStep2()) return;
+
+    const formData = new FormData();
+
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("password", form.password);
+    formData.append("phone", form.phone);
+    formData.append("companyName", form.companyName);
+    formData.append("companyGST", form.companyGST);
+    formData.append("companyAddress", form.companyAddress);
+    formData.append("companySize", form.companySize);
+
+    if (form.gstFile) {
+      formData.append("gstFile", form.gstFile);
+    }
+
+    const res = await dispatch(registerCompany(formData));
+
+    if (res?.meta?.requestStatus === "fulfilled") {
+      sessionStorage.setItem("token", res.payload.token);
+      sessionStorage.setItem("user", JSON.stringify(res.payload.user)); 
+      setSuccess(true);
+    } else {
+      err("companyName", res.payload?.message || "Registration failed");
+    }
+  };
+
+  const handleFile = (file) => {
+    if (
+      file &&
+      (file.type === "application/pdf" || file.type.startsWith("image/"))
+    ) {
+      set("gstFile", file);
+    }
+  };
+
+  const handleClose = () => {
+    setMode("login");
+    setStep(1);
+    setSuccess(false);
+    setForm({
+      email: "",
+      password: "",
+      remember: false,
+      name: "",
+      phone: "",
+      companyName: "",  
+      companyGST: "",
+      companyAddress: "",
+      companySize: "",
+      gstFile: null,
+    });
+    setErrors({});
+    onClose();
+  };
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setStep(1);
+    setSuccess(false);
+    setErrors({});
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 200,
+            background: "rgba(6,9,18,0.9)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 960,
+              maxHeight: "90vh",
+              overflow: "auto",
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              borderRadius: 24,
+              boxShadow: `0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)`,
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                zIndex: 10,
+                background: "none",
+                border: `1px solid ${C.border}`,
+                borderRadius: 8,
+                width: 32,
+                height: 32,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: C.textSec,
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = C.cyan + "60";
+                e.currentTarget.style.color = C.cyan;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = C.border;
+                e.currentTarget.style.color = C.textSec;
+              }}
+            >
+              <Ico d={Icons.x} size={16} />
+            </button>
+
+            {/* Left column - forms */}
+            <div
+              style={{
+                flex: "1 1 55%",
+                padding: "32px 28px",
+                borderRight: `1px solid ${C.border}`,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Logo & tabs */}
+              <div style={{ marginBottom: 28 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 20,
+                  }}
+                >
                   <div
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      background: step > s.id
-                        ? "#198754"
-                        : step === s.id
-                        ? "#AF1763"
-                        : "rgba(255,255,255,0.07)",
-                      color: step >= s.id ? "#fff" : "#5a6380",
-                      transition: "all 0.3s",
-                      border: `1.5px solid ${step === s.id ? "#AF1763" : "transparent"}`,
-                      boxShadow: step === s.id ? "0 0 0 3px rgba(175,23,99,0.2)" : "none",
                     }}
                   >
-                    {step > s.id ? <MdCheck size={13} /> : s.id}
+                    <Ico d={Icons.truck} color="#fff" size={18} />
                   </div>
-                  <span style={{ fontSize: 12, color: step >= s.id ? "#a8b0c8" : "#5a6380", transition: "color 0.3s" }}>
-                    {s.label}
+                  <span
+                    style={{ fontWeight: 700, fontSize: 18, color: C.text }}
+                  >
+                    Fleet<span style={{ color: C.cyan }}>IQ</span>
                   </span>
                 </div>
-              ))}
-            </div>
-            {/* Track */}
-            <div style={{ height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-              <div
-                style={{
-                  height: "100%",
-                  borderRadius: 3,
-                  background: "linear-gradient(90deg, #AF1763, #0D6EFD)",
-                  width: `${((step - 1) / (STEPS.length - 1)) * 100}%`,
-                  transition: "width 0.4s cubic-bezier(0.4,0,0.2,1)",
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Heading */}
-          <div style={{ marginBottom: 24 }}>
-            <h2 style={styles.formHeading}>
-              {step === 1 && "Create your account"}
-              {step === 2 && "Your organisation"}
-              {step === 3 && "Secure your account"}
-            </h2>
-            <p style={styles.formSub}>
-              {step === 1 && "Enter your personal details to get started"}
-              {step === 2 && "Tell us about your fleet operation"}
-              {step === 3 && "Set a strong password to protect your admin account"}
-            </p>
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div style={styles.errorBox}>
-              <MdShield size={15} style={{ flexShrink: 0 }} />
-              {error}
-            </div>
-          )}
-
-          {/* ── STEP 1: Account details ─────────────────────────────────── */}
-          {step === 1 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FieldWrap label="First Name" icon={MdPerson} focused={focused.firstName}>
-                  <input
-                    placeholder="John"
-                    value={form.firstName}
-                    onChange={set("firstName")}
-                    {...focusProps("firstName")}
-                    style={styles.input}
-                  />
-                </FieldWrap>
-                <FieldWrap label="Last Name" icon={MdPerson} focused={focused.lastName}>
-                  <input
-                    placeholder="Smith"
-                    value={form.lastName}
-                    onChange={set("lastName")}
-                    {...focusProps("lastName")}
-                    style={styles.input}
-                  />
-                </FieldWrap>
-              </div>
-
-              <FieldWrap label="Email Address" icon={MdEmail} focused={focused.email}>
-                <input
-                  type="email"
-                  placeholder="admin@yourfleet.com"
-                  value={form.email}
-                  onChange={set("email")}
-                  {...focusProps("email")}
-                  style={styles.input}
-                  autoComplete="email"
-                />
-              </FieldWrap>
-
-              <FieldWrap label="Phone Number (optional)" icon={MdPhone} focused={focused.phone}>
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={form.phone}
-                  onChange={set("phone")}
-                  {...focusProps("phone")}
-                  style={styles.input}
-                />
-              </FieldWrap>
-            </div>
-          )}
-
-          {/* ── STEP 2: Organisation ────────────────────────────────────── */}
-          {step === 2 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <FieldWrap label="Organisation Name" icon={MdBusiness} focused={focused.orgName}>
-                <input
-                  placeholder="Acme Logistics Pvt. Ltd."
-                  value={form.orgName}
-                  onChange={set("orgName")}
-                  {...focusProps("orgName")}
-                  style={styles.input}
-                />
-              </FieldWrap>
-
-              {/* Fleet size */}
-              <div>
-                <label style={styles.label}>Fleet Size</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {[
-                    { value: "1-50",    label: "1 – 50",    sub: "Small fleet"    },
-                    { value: "50-200",  label: "50 – 200",  sub: "Medium fleet"   },
-                    { value: "200-500", label: "200 – 500", sub: "Large fleet"    },
-                    { value: "500+",    label: "500+",      sub: "Enterprise"     },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setForm((f) => ({ ...f, orgSize: opt.value }))}
-                      style={{
-                        padding: "12px 14px",
-                        borderRadius: 9,
-                        border: `1.5px solid ${form.orgSize === opt.value ? "rgba(175,23,99,0.55)" : "rgba(255,255,255,0.08)"}`,
-                        background: form.orgSize === opt.value ? "rgba(175,23,99,0.1)" : "rgba(255,255,255,0.03)",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        transition: "all 0.15s",
-                        boxShadow: form.orgSize === opt.value ? "0 0 0 3px rgba(175,23,99,0.1)" : "none",
-                      }}
-                    >
-                      <div style={{ fontSize: 13, fontWeight: 600, color: form.orgSize === opt.value ? "#f0f2f8" : "#a8b0c8" }}>
-                        {opt.label}
-                      </div>
-                      <div style={{ fontSize: 10, color: "#5a6380", marginTop: 2 }}>{opt.sub}</div>
-                    </button>
-                  ))}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    background: C.dark,
+                    padding: 4,
+                    borderRadius: 12,
+                  }}
+                >
+                  <button
+                    onClick={() => switchMode("login")}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: mode === "login" ? C.card2 : "transparent",
+                      color: mode === "login" ? C.cyan : C.textSec,
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => switchMode("register")}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: mode === "register" ? C.card2 : "transparent",
+                      color: mode === "register" ? C.cyan : C.textSec,
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    Register
+                  </button>
                 </div>
               </div>
 
-              {/* Role */}
-              <div>
-                <label style={styles.label}>Your Role</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {ROLES.map((r) => (
-                    <button
-                      key={r.value}
-                      type="button"
-                      onClick={() => setForm((f) => ({ ...f, role: r.value }))}
+              {/* Forms */}
+              <div style={{ flex: 1 }}>
+                {mode === "login" ? (
+                  <motion.div
+                    key="login"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 18,
+                    }}
+                  >
+                    <InputField
+                      label="Email Address"
+                      name="email"
+                      type="email"
+                      icon="mail"
+                      placeholder="admin@company.com"
+                      required
+                      value={form.email}
+                      error={errors.email}
+                      onChange={(v) => {
+                        set("email", v);
+                        clearErr("email");
+                      }}
+                    />
+                    <InputField
+                      label="Password"
+                      name="password"
+                      type={showPass ? "text" : "password"}
+                      icon="lock"
+                      placeholder="••••••••"
+                      required
+                      rightEl={
+                        <button
+                          onClick={() => setShowPass((p) => !p)}
+                          style={{
+                            position: "absolute",
+                            right: 12,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: C.textMut,
+                            padding: 0,
+                          }}
+                        >
+                          <Ico
+                            d={showPass ? Icons.eyeOff : Icons.eye}
+                            size={16}
+                          />
+                        </button>
+                      }
+                      value={form.password}
+                      error={errors.password}
+                      onChange={(v) => {
+                        set("password", v);
+                        clearErr("password");
+                      }}
+                    />
+                    <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 12,
-                        padding: "11px 14px",
-                        borderRadius: 9,
-                        border: `1.5px solid ${form.role === r.value ? "rgba(175,23,99,0.55)" : "rgba(255,255,255,0.07)"}`,
-                        background: form.role === r.value ? "rgba(175,23,99,0.08)" : "rgba(255,255,255,0.03)",
-                        cursor: "pointer",
-                        transition: "all 0.15s",
-                        textAlign: "left",
+                        justifyContent: "space-between",
                       }}
                     >
-                      <div
+                      <label
                         style={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: "50%",
-                          border: `2px solid ${form.role === r.value ? "#AF1763" : "rgba(255,255,255,0.2)"}`,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          cursor: "pointer",
+                          fontSize: 13,
+                          color: C.textSec,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.remember}
+                          onChange={(e) => set("remember", e.target.checked)}
+                          style={{ accentColor: C.cyan }}
+                        />
+                        Remember me
+                      </label>
+                      <a
+                        href="#"
+                        style={{
+                          fontSize: 13,
+                          color: C.cyan,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+                    <button
+                      onClick={handleLogin}
+                      disabled={loading}
+                      style={{
+                        marginTop: 12,
+                        background: loading
+                          ? `${C.cyan}60`
+                          : `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+                        border: "none",
+                        color: "#fff",
+                        padding: "13px 24px",
+                        borderRadius: 10,
+                        fontSize: 15,
+                        fontWeight: 600,
+                        cursor: loading ? "not-allowed" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        boxShadow: loading ? "none" : `0 4px 20px ${C.cyan}40`,
+                        transition: "transform 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loading)
+                          e.currentTarget.style.transform = "scale(1.01)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!loading)
+                          e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      {loading ? (
+                        <>
+                          <motion.span
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 0.8 }}
+                            style={{
+                              width: 16,
+                              height: 16,
+                              border: "2px solid rgba(255,255,255,0.3)",
+                              borderTopColor: "#fff",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          Signing in…
+                        </>
+                      ) : (
+                        "Sign In →"
+                      )}
+                    </button>
+                  </motion.div>
+                ) : success ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{ textAlign: "center", padding: "20px 0" }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        delay: 0.1,
+                      }}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: "50%",
+                        background: `${C.green}20`,
+                        border: `1px solid ${C.green}40`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "0 auto 20px",
+                      }}
+                    >
+                      <Ico
+                        d={Icons.check}
+                        color={C.green}
+                        size={32}
+                        stroke={2.2}
+                      />
+                    </motion.div>
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: C.text,
+                        marginBottom: 12,
+                      }}
+                    >
+                      Registration Complete!
+                    </div>
+                    <div
+                      style={{
+                        color: C.textSec,
+                        fontSize: 14,
+                        marginBottom: 28,
+                      }}
+                    >
+                      <span style={{ color: C.cyan, fontWeight: 600 }}>
+                        {form.companyName}
+                      </span>{" "}
+                      is now live on FleetIQ.
+                      <br />
+                      Check your email to verify your account.
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleClose();
+                        navigate("/dashboard"); // ✅ redirect after register
+                      }}
+                      style={{
+                        background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+                        border: "none",
+                        color: "#fff",
+                        padding: "12px 32px",
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Go to Dashboard
+                    </button>
+                  </motion.div>
+                ) : step === 1 ? (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                    }}
+                  >
+                    <div style={{ marginBottom: 4 }}>
+                      <div
+                        style={{ fontWeight: 600, fontSize: 15, color: C.text }}
+                      >
+                        Admin Account
+                      </div>
+                      <div
+                        style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}
+                      >
+                        These credentials will be used to log in.
+                      </div>
+                    </div>
+                    <InputField
+                      label="Full Name"
+                      name="name"
+                      icon="user"
+                      placeholder="John Doe"
+                      required
+                      value={form.name}
+                      error={errors.name}
+                      onChange={(v) => {
+                        set("name", v);
+                        clearErr("name");
+                      }}
+                    />
+                    <InputField
+                      label="Email Address"
+                      name="email"
+                      type="email"
+                      icon="mail"
+                      placeholder="john@company.com"
+                      required
+                      value={form.email}
+                      error={errors.email}
+                      onChange={(v) => {
+                        set("email", v);
+                        clearErr("email");
+                      }}
+                    />
+                    <InputField
+                      label="Password"
+                      name="password"
+                      type={showPass ? "text" : "password"}
+                      icon="lock"
+                      placeholder="Min 8 characters"
+                      required
+                      rightEl={
+                        <button
+                          onClick={() => setShowPass((p) => !p)}
+                          style={{
+                            position: "absolute",
+                            right: 12,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: C.textMut,
+                            padding: 0,
+                          }}
+                        >
+                          <Ico
+                            d={showPass ? Icons.eyeOff : Icons.eye}
+                            size={16}
+                          />
+                        </button>
+                      }
+                      value={form.password}
+                      error={errors.password}
+                      onChange={(v) => {
+                        set("password", v);
+                        clearErr("password");
+                      }}
+                    />
+                    <InputField
+                      label="Phone Number"
+                      name="phone"
+                      type="tel"
+                      icon="phone"
+                      placeholder="+91 98765 43210"
+                      value={form.phone}
+                      error={errors.phone}
+                      onChange={(v) => {
+                        set("phone", v);
+                        clearErr("phone");
+                      }}
+                    />
+                    {form.password && (
+                      <div style={{ display: "flex", gap: 4, marginTop: -8 }}>
+                        {[1, 2, 3, 4].map((i) => {
+                          const strength = Math.min(
+                            4,
+                            Math.floor(form.password.length / 3),
+                          );
+                          const col =
+                            strength <= 1
+                              ? C.red
+                              : strength === 2
+                                ? C.yellow
+                                : strength === 3
+                                  ? C.cyan
+                                  : C.green;
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                flex: 1,
+                                height: 3,
+                                borderRadius: 2,
+                                background: i <= strength ? col : C.border,
+                                transition: "background 0.3s",
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                    <button
+                      onClick={handleNext}
+                      style={{
+                        marginTop: 8,
+                        background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+                        border: "none",
+                        color: "#fff",
+                        padding: "13px 24px",
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        boxShadow: `0 4px 20px ${C.cyan}40`,
+                      }}
+                    >
+                      Continue to Company Details
+                      <Ico d={Icons.arrow} color="#fff" size={15} />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                    }}
+                  >
+                    <div style={{ marginBottom: 4 }}>
+                      <div
+                        style={{ fontWeight: 600, fontSize: 15, color: C.text }}
+                      >
+                        Company Details
+                      </div>
+                      <div
+                        style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}
+                      >
+                        Your organization profile on FleetIQ.
+                      </div>
+                    </div>
+                    <InputField
+                      label="Company Name"
+                      name="companyName"
+                      icon="building"
+                      placeholder="Acme Logistics Pvt. Ltd."
+                      required
+                      value={form.companyName}
+                      error={errors.companyName}
+                      onChange={(v) => {
+                        set("companyName", v);
+                        clearErr("companyName");
+                      }}
+                    />
+                    <SelectField
+                      label="Fleet Size"
+                      name="companySize"
+                      required
+                      options={[
+                        { value: "1-10", label: "1–10 vehicles" },
+                        { value: "11-50", label: "11–50 vehicles" },
+                        { value: "51-200", label: "51–200 vehicles" },
+                        { value: "201-500", label: "201–500 vehicles" },
+                        { value: "500+", label: "500+ vehicles" },
+                      ]}
+                      value={form.companySize}
+                      error={errors.companySize}
+                      onChange={(v) => {
+                        set("companySize", v);
+                        clearErr("companySize");
+                      }}
+                    />
+                    <InputField
+                      label="GST Number"
+                      name="companyGST"
+                      icon="shield"
+                      placeholder="22AAAAA0000A1Z5"
+                      value={form.companyGST}
+                      error={errors.companyGST}
+                      onChange={(v) => {
+                        set("companyGST", v);
+                        clearErr("companyGST");
+                      }}
+                    />
+                    <InputField
+                      label="Company Address"
+                      name="companyAddress"
+                      icon="map"
+                      placeholder="123 Fleet Nagar, Mumbai, MH 400001"
+                      value={form.companyAddress}
+                      error={errors.companyAddress}
+                      onChange={(v) => {
+                        set("companyAddress", v);
+                        clearErr("companyAddress");
+                      }}
+                    />
+
+                    {/* GST Upload */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6,
+                      }}
+                    >
+                      <label
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: C.textSec,
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        GST Certificate{" "}
+                        <span style={{ color: C.textMut, fontWeight: 400 }}>
+                          (PDF or image)
+                        </span>
+                      </label>
+                      <div
+                        onClick={() => fileRef.current?.click()}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragOver(true);
+                        }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOver(false);
+                          handleFile(e.dataTransfer.files[0]);
+                        }}
+                        style={{
+                          border: `1.5px dashed ${
+                            dragOver
+                              ? C.cyan
+                              : form.gstFile
+                                ? C.green + "60"
+                                : C.border
+                          }`,
+                          borderRadius: 12,
+                          padding: "18px 16px",
+                          textAlign: "center",
+                          cursor: "pointer",
+                          background: dragOver
+                            ? `${C.cyan}08`
+                            : form.gstFile
+                              ? `${C.green}08`
+                              : "transparent",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        {form.gstFile ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 10,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 8,
+                                background: `${C.green}20`,
+                                border: `1px solid ${C.green}40`,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Ico d={Icons.check} color={C.green} size={16} />
+                            </div>
+                            <div style={{ textAlign: "left" }}>
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  color: C.text,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {form.gstFile.name}
+                              </div>
+                              <div style={{ fontSize: 11, color: C.textMut }}>
+                                {(form.gstFile.size / 1024).toFixed(1)} KB ·
+                                Click to change
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 10,
+                                background: `${C.cyan}15`,
+                                border: `1px solid ${C.cyan}30`,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto 10px",
+                              }}
+                            >
+                              <Ico
+                                d={Icons.database}
+                                color={C.cyan}
+                                size={18}
+                              />
+                            </div>
+                            <div style={{ fontSize: 13, color: C.textSec }}>
+                              <span style={{ color: C.cyan, fontWeight: 600 }}>
+                                Click to upload
+                              </span>{" "}
+                              or drag & drop
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: C.textMut,
+                                marginTop: 4,
+                              }}
+                            >
+                              PDF, JPG, PNG up to 5MB
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept=".pdf,image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) =>
+                          e.target.files && handleFile(e.target.files[0])
+                        }
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                      <button
+                        onClick={() => setStep(1)}
+                        style={{
+                          flex: 1,
+                          background: "none",
+                          border: `1px solid ${C.border}`,
+                          color: C.textSec,
+                          padding: "13px 16px",
+                          borderRadius: 10,
+                          fontSize: 14,
+                          cursor: "pointer",
+                        }}
+                      >
+                        ← Back
+                      </button>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        style={{
+                          flex: 2,
+                          background: loading
+                            ? `${C.cyan}60`
+                            : `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
+                          border: "none",
+                          color: "#fff",
+                          padding: "13px 24px",
+                          borderRadius: 10,
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: loading ? "not-allowed" : "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          flexShrink: 0,
-                          transition: "border-color 0.15s",
+                          gap: 8,
+                          boxShadow: loading
+                            ? "none"
+                            : `0 4px 20px ${C.cyan}40`,
                         }}
                       >
-                        {form.role === r.value && (
-                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#AF1763" }} />
+                        {loading ? (
+                          <>
+                            <motion.span
+                              animate={{ rotate: 360 }}
+                              transition={{ repeat: Infinity, duration: 0.8 }}
+                              style={{
+                                width: 14,
+                                height: 14,
+                                border: "2px solid rgba(255,255,255,0.3)",
+                                borderTopColor: "#fff",
+                                borderRadius: "50%",
+                              }}
+                            />
+                            Registering…
+                          </>
+                        ) : (
+                          <>
+                            Register Company
+                            <Ico d={Icons.check} color="#fff" size={15} />
+                          </>
                         )}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: form.role === r.value ? "#f0f2f8" : "#a8b0c8" }}>
-                          {r.label}
-                        </div>
-                        <div style={{ fontSize: 11, color: "#5a6380" }}>{r.desc}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      </button>
+                    </div>
+                    <p
+                      style={{
+                        textAlign: "center",
+                        fontSize: 12,
+                        color: C.textMut,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      By registering you agree to FleetIQ's{" "}
+                      <span style={{ color: C.cyan, cursor: "pointer" }}>
+                        Terms of Service
+                      </span>{" "}
+                      &{" "}
+                      <span style={{ color: C.cyan, cursor: "pointer" }}>
+                        Privacy Policy
+                      </span>
+                    </p>
+                  </motion.div>
+                )}
               </div>
             </div>
-          )}
 
-          {/* ── STEP 3: Security ────────────────────────────────────────── */}
-          {step === 3 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {/* Password */}
-              <div>
-                <label style={styles.label}>Password</label>
-                <div style={styles.inputWrap(focused.password)}>
-                  <MdLock size={17} style={{ color: focused.password ? "#AF1763" : "#5a6380", flexShrink: 0, transition: "color 0.2s" }} />
-                  <input
-                    type={showPass ? "text" : "password"}
-                    placeholder="Minimum 8 characters"
-                    value={form.password}
-                    onChange={set("password")}
-                    {...focusProps("password")}
-                    style={styles.input}
-                  />
-                  <button type="button" onClick={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
-                    {showPass ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
-                  </button>
-                </div>
-
-                {/* Strength meter */}
-                {form.password && (
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ display: "flex", gap: 4, marginBottom: 5 }}>
-                      {[1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          style={{
-                            flex: 1,
-                            height: 3,
-                            borderRadius: 2,
-                            background: i <= passStrength ? strengthColor : "rgba(255,255,255,0.07)",
-                            transition: "background 0.3s",
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div style={{ fontSize: 11, color: strengthColor, fontWeight: 500 }}>
-                      {strengthLabel}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Confirm password */}
-              <div>
-                <label style={styles.label}>Confirm Password</label>
-                <div style={styles.inputWrap(focused.confirmPassword)}>
-                  <MdLock size={17} style={{ color: focused.confirmPassword ? "#AF1763" : "#5a6380", flexShrink: 0, transition: "color 0.2s" }} />
-                  <input
-                    type={showConfirm ? "text" : "password"}
-                    placeholder="Re-enter your password"
-                    value={form.confirmPassword}
-                    onChange={set("confirmPassword")}
-                    {...focusProps("confirmPassword")}
-                    style={styles.input}
-                  />
-                  <button type="button" onClick={() => setShowConfirm((v) => !v)} style={styles.eyeBtn}>
-                    {showConfirm ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
-                  </button>
-                </div>
-                {form.confirmPassword && form.password !== form.confirmPassword && (
-                  <div style={{ fontSize: 11, color: "#AB2E3C", marginTop: 5 }}>
-                    Passwords do not match
-                  </div>
-                )}
-                {form.confirmPassword && form.password === form.confirmPassword && (
-                  <div style={{ fontSize: 11, color: "#198754", marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}>
-                    <MdCheck size={13} /> Passwords match
-                  </div>
-                )}
-              </div>
-
-              {/* Terms */}
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                <div
-                  onClick={() => setForm((f) => ({ ...f, agree: !f.agree }))}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 5,
-                    border: `1.5px solid ${form.agree ? "#AF1763" : "rgba(255,255,255,0.15)"}`,
-                    background: form.agree ? "#AF1763" : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    marginTop: 1,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {form.agree && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </div>
-                <span style={{ fontSize: 12, color: "#a8b0c8", lineHeight: 1.5, userSelect: "none" }}>
-                  I agree to the{" "}
-                  <a href="#" style={{ color: "#AF1763", textDecoration: "none" }}>Terms of Service</a>
-                  {" "}and{" "}
-                  <a href="#" style={{ color: "#AF1763", textDecoration: "none" }}>Privacy Policy</a>.
-                  Fleetiq stores data securely with HTTPS and AES-256 encryption.
-                </span>
-              </label>
+            {/* Right column - contextual info */}
+            <div
+              style={{
+                flex: "1 1 45%",
+                background: C.darker,
+                borderRadius: "0 24px 24px 0",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <RightContent mode={mode} success={success} step={step} />
             </div>
-          )}
 
-          {/* ── Navigation buttons ──────────────────────────────────────── */}
-          <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                style={{
-                  ...styles.backBtn,
-                  flex: step === STEPS.length ? "0 0 auto" : 1,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-              >
-                <MdArrowBack size={16} /> Back
-              </button>
-            )}
-
-            {step < STEPS.length ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                style={{ ...styles.nextBtn, flex: 1 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#8d1250")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#AF1763")}
-              >
-                Continue <MdArrowForward size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={loading}
-                style={{ ...styles.nextBtn, flex: 1, opacity: loading ? 0.8 : 1, cursor: loading ? "not-allowed" : "pointer" }}
-              >
-                {loading ? (
-                  <span style={styles.spinner} />
-                ) : (
-                  <>Create Account <MdArrowForward size={16} /></>
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* Sign in link */}
-          <p style={{ ...styles.switchText, marginTop: 20 }}>
-            Already have an account?{" "}
-            <Link to="/login" style={styles.switchLink}>Sign in</Link>
-          </p>
-
-          {/* Security note */}
-          <div style={styles.securityNote}>
-            <MdShield size={13} style={{ color: "#198754", flexShrink: 0 }} />
-            <span>Your data is encrypted with AES-256 at rest</span>
-          </div>
-        </div>
-      </div>
-
-      <style>{AUTH_STYLES}</style>
-    </div>
+            {/* Responsive: on small screens stack? We'll handle with CSS media queries later if needed, but for now it's a row */}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-}
-
-/* ── Field wrapper ──────────────────────────────────────────────────────────── */
-function FieldWrap({ label, icon: Icon, focused, children }) {
-  return (
-    <div>
-      <label style={styles.label}>{label}</label>
-      <div style={styles.inputWrap(focused)}>
-        <Icon size={17} style={{ color: focused ? "#AF1763" : "#5a6380", flexShrink: 0, transition: "color 0.2s" }} />
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ── Shared styles object ────────────────────────────────────────────────── */
-const styles = {
-  root: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#0f1117",
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  panel: {
-    flex: "0 0 44%",
-    position: "relative",
-    overflow: "hidden",
-    background: "#191C24",
-    display: "flex",
-    flexDirection: "column",
-  },
-  grid: {
-    position: "absolute",
-    inset: 0,
-    backgroundImage:
-      "linear-gradient(rgba(13,110,253,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(13,110,253,0.06) 1px, transparent 1px)",
-    backgroundSize: "40px 40px",
-    animation: "gridMove 22s linear infinite",
-  },
-  blob: {
-    position: "absolute",
-    borderRadius: "50%",
-    filter: "blur(60px)",
-    pointerEvents: "none",
-  },
-  panelFade: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    background: "linear-gradient(to top, #191C24, transparent)",
-    pointerEvents: "none",
-  },
-  panelContent: {
-    position: "relative",
-    zIndex: 2,
-    display: "flex",
-    flexDirection: "column",
-    padding: "40px 48px 48px",
-    height: "100%",
-  },
-  logo: { display: "flex", alignItems: "center", gap: 12, marginBottom: "auto" },
-  logoIcon: {
-    width: 40, height: 40, borderRadius: 11,
-    background: "linear-gradient(135deg, #AF1763, #7b0e44)",
-    boxShadow: "0 4px 16px rgba(175,23,99,0.45)",
-    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  },
-  logoName: {
-    fontSize: 17, fontWeight: 700, color: "#f0f2f8",
-    fontFamily: "'Sora', sans-serif", letterSpacing: "-0.01em", lineHeight: 1.1,
-  },
-  logoBadge: { fontSize: 9, fontWeight: 700, color: "#AF1763", letterSpacing: "0.12em", marginTop: 2 },
-  panelEyebrow: {
-    display: "flex", alignItems: "center", gap: 6,
-    fontSize: 11, fontWeight: 600, color: "#0DCAF0",
-    letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 14,
-  },
-  panelHeading: {
-    fontSize: 34, fontWeight: 700, color: "#f0f2f8",
-    fontFamily: "'Sora', sans-serif", lineHeight: 1.2, letterSpacing: "-0.02em",
-  },
-  panelSub: {
-    fontSize: 13, color: "rgba(255,255,255,0.42)", lineHeight: 1.65, marginTop: 12, maxWidth: 360,
-  },
-  formSide: {
-    flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center",
-    padding: "40px 24px", overflowY: "auto",
-  },
-  formCard: {
-    width: "100%", maxWidth: 440,
-    animation: "slideUp 0.45s cubic-bezier(0.4,0,0.2,1) both",
-    paddingTop: 20,
-  },
-  mobileLogo: {
-    display: "none", alignItems: "center", gap: 10, justifyContent: "center",
-  },
-  formHeading: {
-    fontSize: 24, fontWeight: 700, color: "#f0f2f8",
-    fontFamily: "'Sora', sans-serif", letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 5,
-  },
-  formSub: { fontSize: 13, color: "#5a6380" },
-  label: {
-    display: "block", fontSize: 12, fontWeight: 600,
-    color: "#a8b0c8", marginBottom: 6, letterSpacing: "0.02em",
-  },
-  inputWrap: (focused) => ({
-    display: "flex", alignItems: "center", gap: 10,
-    height: 44, padding: "0 13px", borderRadius: 9,
-    background: "rgba(255,255,255,0.04)",
-    border: `1.5px solid ${focused ? "rgba(175,23,99,0.55)" : "rgba(255,255,255,0.08)"}`,
-    transition: "border-color 0.2s, box-shadow 0.2s",
-    boxShadow: focused ? "0 0 0 3px rgba(175,23,99,0.1)" : "none",
-  }),
-  input: {
-    flex: 1, background: "transparent", border: "none", outline: "none",
-    fontSize: 13, color: "#f0f2f8", fontFamily: "'DM Sans', sans-serif",
-    caretColor: "#AF1763", minWidth: 0,
-  },
-  eyeBtn: {
-    background: "none", border: "none", cursor: "pointer",
-    color: "#5a6380", display: "flex", padding: 2,
-  },
-  errorBox: {
-    display: "flex", alignItems: "center", gap: 8,
-    padding: "10px 14px", borderRadius: 9,
-    background: "rgba(171,46,60,0.12)", border: "1px solid rgba(171,46,60,0.3)",
-    color: "#e07b88", fontSize: 13, marginBottom: 4,
-  },
-  nextBtn: {
-    height: 44, borderRadius: 9,
-    background: "#AF1763", color: "#fff", border: "none",
-    fontSize: 13, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'DM Sans', sans-serif",
-    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-    boxShadow: "0 4px 16px rgba(175,23,99,0.35)",
-    transition: "background 0.15s",
-  },
-  backBtn: {
-    height: 44, borderRadius: 9,
-    background: "rgba(255,255,255,0.05)",
-    border: "1.5px solid rgba(255,255,255,0.08)",
-    color: "#a8b0c8", fontSize: 13, fontWeight: 500,
-    cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-    transition: "background 0.15s", padding: "0 18px",
-  },
-  spinner: {
-    width: 18, height: 18,
-    border: "2.5px solid rgba(255,255,255,0.3)",
-    borderTopColor: "#fff", borderRadius: "50%",
-    display: "inline-block",
-    animation: "spin 0.75s linear infinite",
-  },
-  switchText: { fontSize: 13, color: "#5a6380", textAlign: "center" },
-  switchLink: { color: "#AF1763", textDecoration: "none", fontWeight: 600 },
-  securityNote: {
-    display: "flex", alignItems: "center", justifyContent: "center",
-    gap: 6, fontSize: 11, color: "#5a6380", marginTop: 16,
-  },
-  successCard: {
-    width: "100%", maxWidth: 400,
-    background: "#191C24",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 16, padding: 40,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
-    animation: "slideUp 0.4s ease both",
-  },
-  successIcon: {
-    width: 72, height: 72, borderRadius: "50%",
-    background: "rgba(25,135,84,0.12)",
-    border: "2px solid rgba(25,135,84,0.3)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    margin: "0 auto 20px",
-  },
 };
 
-const AUTH_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
-
-  @keyframes gridMove {
-    0%   { background-position: 0 0; }
-    100% { background-position: 40px 40px; }
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 900px) {
-    .auth-panel { display: none !important; }
-  }
-`;
+export default RegisterCompanyModal;

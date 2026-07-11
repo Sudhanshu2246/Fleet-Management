@@ -1,6 +1,6 @@
-const app = require("./app");
-const connectDB = require("./config/db");
 require("dotenv").config();
+const app = require("./app");
+const { connectDB } = require("./config/db");
 
 const PORT = process.env.PORT || 5001;
 const ENV = process.env.NODE_ENV || "development";
@@ -16,8 +16,23 @@ const startServer = async () => {
     // Connect DB
     await connectDB();
 
+    const { sequelize } = require("./config/db");
+    require("./index/index.model");
+    await sequelize.sync();
+
+    console.log("✅Database Models Synced");
+
+    // Create HTTP server
+    const http = require("http");
+    const server = http.createServer(app);
+
+    // Initialize Socket.io
+    const { initSocket } = require("./socket");
+    initSocket(server);
+
     // Start server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
+      console.clear();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log(`🌐 Server Status   : RUNNING`);
       console.log(`📍 Port           : ${PORT}`);

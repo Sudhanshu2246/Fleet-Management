@@ -1,0 +1,369 @@
+const { Driver, User, Vehicle, Trip, Organization } = require("../../index/index.model");
+const bcrypt = require("bcryptjs");
+const { uploadFromBuffer } = require("../../utils/cloudinary");
+const { sequelize } = require("../../config/db");
+
+// @desc    Create new driver
+// @route   POST /api/v1/drivers
+// @access  Private (Company Admin)
+exports.createDriver = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const { 
+      name, email, phone, driverType,
+      licenseNumber, licenseType, vehicleCategories, licenseExpiryDate,
+      aadhaarCard, panCard
+    } = req.body;
+
+    // Handle optional email
+    const driverEmail = email && email.trim() !== "" ? email : `driver_${phone}@fleet.com`;
+
+    const existingUser = await User.findOne({ where: { email: driverEmail } });
+    if (existingUser) {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone already registered",
+      });
+    }
+
+    // Default password to phone number since drivers don't provide a password on creation
+    // The user model now supports null passwords for drivers who use OTPs or alternative logins.
+
+    const uploadMultiple = async (filesArray) => {
+      let urls = [];
+      if (filesArray && Array.isArray(filesArray)) {
+        for (const file of filesArray) {
+          try {
+            const result = await uploadFromBuffer(file.buffer, "driver_docs");
+            urls.push(result.secure_url);
+          } catch (error) { 
+            console.log("Cloudinary Upload Failed:", error.message); 
+          }
+        }
+      }
+      return urls;
+    };
+
+    // Helper to safely parse req.body fields into arrays
+    const parseBodyArray = (field) => {
+      if (!field) return [];
+      if (Array.isArray(field)) return field;
+      return [field];
+    };
+
+    let licenseImage = parseBodyArray(req.body.licenseImage);
+    let aadharImage = parseBodyArray(req.body.aadhaarImage);
+    let panImage = parseBodyArray(req.body.panImage);
+
+    if (req.files) {
+      if (req.files.licenseImage) licenseImage = await uploadMultiple(req.files.licenseImage);
+      if (req.files.aadhaarImage) aadharImage = await uploadMultiple(req.files.aadhaarImage);
+      if (req.files.panImage) panImage = await uploadMultiple(req.files.panImage);
+    }
+
+    const [firstName, ...lastNameParts] = name.split(" ");
+
+    const user = await User.create({
+      firstName: firstName || name,
+      lastName: lastNameParts.join(" ") || " ",
+      email: driverEmail,
+      phone: phone || "0000000000",
+      role: "driver",
+      organizationId: req.user.organizationId, // Fixed reference
+    }, { transaction });
+
+    const normalizedDriverType = driverType ? driverType.replace("-", "_").toLowerCase() : "driver";
+
+    const driver = await Driver.create({
+      userId: user.id,
+      driverType: normalizedDriverType,
+      licenseNumber,
+      licenseType,
+      vehicleCategories,
+      licenseExpiryDate,
+      licenseImage, // JSON array
+      aadhaarCard, // string
+      aadharImage, // JSON array
+      panCard, // string
+      panImage, // JSON array
+    }, { transaction });
+
+    await transaction.commit();
+
+    res.status(201).json({
+      success: true,
+      message: "Driver created successfully",
+      data: { user, driver },
+    });
+  } catch (error) {
+    await transaction.rollback();
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// @desc    Get all drivers (with pagination and filtering)
+// @route   GET /api/v1/drivers
+// @access  Private
+exports.getDrivers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, isActive, search } = req.query;
+    
+    const offset = (page - 1) * limit;
+
+    const whereCondition = {
+      organizationId: req.user.organizationId || req.user.organization,
+      role: "driver",
+    };
+
+    if (search) {
+      const { Op } = require("sequelize");
+      whereCondition[Op.or] = [
+        { firstName: { [Op.like]: `%${search}%` } },
+        { lastName: { [Op.like]: `%${search}%` } },
+        { phone: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    const driverInclude = {
+      model: Driver,
+      as: "Driver"
+    };
+
+    if (isActive !== undefined) {
+      driverInclude.where = { isActive: isActive === 'true' };
+    }
+
+    const { count, rows } = await User.findAndCountAll({
+      where: whereCondition,
+      include: [driverInclude],
+      order: [["createdAt", "DESC"]],
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10),
+      distinct: true // Important when using findAndCountAll with includes
+    });
+
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      total: count,
+      pagination: {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        totalPages: Math.ceil(count / limit)
+      },
+      data: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// @desc    Assign vehicle to driver
+// @route   POST /api/v1/drivers/assign-vehicle
+// @access  Private
+exports.assignVehicle = async (req, res) => {
+  try {
+    const { driverId, vehicleId } = req.body; // driverId is User ID
+
+    const driverUser = await User.findOne({
+      where: {
+        id: driverId,
+        organizationId: req.user.organization,
+        role: "driver",
+      }
+    });
+
+    const driverProfile = await Driver.findOne({
+      where: { userId: driverId }
+    });
+
+    const vehicle = await Vehicle.findOne({
+      where: {
+        id: vehicleId,
+        organizationId: req.user.organization,
+      }
+    });
+
+    if (!driverUser || !driverProfile || !vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver or Vehicle not found",
+      });
+    }
+
+    // 1. Unassign previous driver from this vehicle if any
+    if (vehicle.driverAssignedId) {
+      await Driver.update(
+        { vehicleAssignedId: null }, 
+        { where: { userId: vehicle.driverAssignedId } }
+      );
+    }
+
+    // 2. Unassign previous vehicle from this driver if any
+    if (driverProfile.vehicleAssignedId) {
+      await Vehicle.update(
+        { driverAssignedId: null }, 
+        { where: { id: driverProfile.vehicleAssignedId } }
+      );
+    }
+
+    // 3. Link them
+    driverProfile.vehicleAssignedId = vehicle.id;
+    vehicle.driverAssignedId = driverUser.id;
+
+    await driverProfile.save();
+    await vehicle.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Vehicle assigned to driver successfully",
+      data: { driver: driverUser, vehicle },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// @desc    Update driver status (Activate/Suspend)
+// @route   PUT /api/v1/drivers/:id/status
+// @access  Private
+exports.updateDriverStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    
+    const driverUser = await User.findOne({
+      where: { id: req.params.id, organizationId: req.user.organization, role: "driver" }
+    });
+
+    if (!driverUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    await Driver.update(
+      { isActive },
+      { where: { userId: driverUser.id } }
+    );
+
+    const driverProfile = await Driver.findOne({ where: { userId: driverUser.id } });
+
+    res.status(200).json({
+      success: true,
+      message: `Driver ${isActive ? "activated" : "suspended"} successfully`,
+      data: driverProfile,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// @desc    Get single driver by ID
+// @route   GET /api/v1/drivers/:id
+// @access  Private
+exports.getDriverById = async (req, res) => {
+  try {
+    const driver = await User.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId || req.user.organization,
+        role: "driver",
+      },
+      attributes: { exclude: ["password"] },
+      include: [
+        {
+          model: Driver,
+          as: "Driver",
+          include: [
+            {
+              model: Vehicle,
+              as: "AssignedVehicle",
+              attributes: ["id", "vehicleNumber", "name", "type", "status"]
+            }
+          ]
+        }
+      ]
+    });
+
+    if (!driver) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: driver,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// @desc    Delete a driver
+// @route   DELETE /api/v1/drivers/:id
+// @access  Private
+exports.deleteDriver = async (req, res) => {
+  try {
+    const { VehicleAssignment } = require("../../index/index.model");
+
+    const driverUser = await User.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId || req.user.organization,
+        role: "driver"
+      }
+    });
+
+    if (!driverUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Driver not found"
+      });
+    }
+
+    // Check for Driver profile and unassign from active vehicle
+    const driverProfile = await Driver.findOne({ where: { userId: driverUser.id } });
+    if (driverProfile && driverProfile.vehicleAssignedId) {
+      await Vehicle.update(
+        { driverAssignedId: null, status: 'idle' },
+        { where: { id: driverProfile.vehicleAssignedId } }
+      );
+    }
+    
+    // Clear out assignment history for this driver
+    await VehicleAssignment.destroy({ where: { driverId: driverUser.id } });
+
+    // Destroy Profile and User
+    if (driverProfile) await driverProfile.destroy();
+    await driverUser.destroy();
+
+    res.status(200).json({
+      success: true,
+      message: "Driver deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error"
+    });
+  }
+};

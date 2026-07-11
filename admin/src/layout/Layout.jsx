@@ -73,49 +73,9 @@ export default function Layout() {
         <Header onMenuToggle={handleMenuToggle} />
 
         {/* ── Page content ────────────────────────────────────────────── */}
-        <main className="p-10"  style={{ margin: 15, overflowY: "auto", background: "var(--color-bg-base)" }}>
+        <main className="">
           <Outlet />
         </main>
-
-        {/* ── Footer ──────────────────────────────────────────────────── */}
-        <footer
-          style={{
-            height: 46,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 28px",
-            background: "var(--color-bg-card)",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            flexShrink: 0,
-          }}
-          className="sticky bottom-0 z-40 flex shrink-0"
-        >
-          <span
-            style={{
-              fontSize: 12,
-              color: "var(--color-text-muted)",
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            © 2025 Fleetiq  · Real-Time Fleet & Human Tracking Platform
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-              Node.js · MongoDB · Redis · Socket.io
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--color-fleet-pink)",
-                fontFamily: "var(--font-mono)",
-              }}
-            >
-              v2.4.1
-            </span>
-          </div>
-        </footer>
       </div>
 
       {/* ── Responsive sidebar styles ────────────────────────────────────── */}

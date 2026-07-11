@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../Redux/Thunks/auth.thunks";
+import { useNavigate } from "react-router-dom";
 import {
   MdSearch,
   MdNotificationsActive,
-  MdMenu,
   MdFullscreen,
   MdFullscreenExit,
   MdRefresh,
@@ -18,9 +20,7 @@ import {
   MdClose,
 } from "react-icons/md";
 import { RiSignalTowerFill } from "react-icons/ri";
-import { HiOutlineChip } from "react-icons/hi";
 
-// ─── Sample notifications from SOW alert types ──────────────────────────────
 const NOTIFICATIONS = [
   {
     id: 1,
@@ -29,7 +29,8 @@ const NOTIFICATIONS = [
     message: "Vehicle VH-4821 triggered SOS — Chennai Highway",
     time: "2m ago",
     read: false,
-    color: "#AB2E3C",
+    colorCls: "text-red-400",
+    bgCls: "bg-red-500/10 border border-red-500/20",
     icon: MdWarning,
   },
   {
@@ -39,7 +40,8 @@ const NOTIFICATIONS = [
     message: "Driver UID-2291 exited Zone B perimeter",
     time: "8m ago",
     read: false,
-    color: "#FFC107",
+    colorCls: "text-amber-400",
+    bgCls: "bg-amber-500/10 border border-amber-500/20",
     icon: MdGpsOff,
   },
   {
@@ -49,7 +51,8 @@ const NOTIFICATIONS = [
     message: "Device DEV-0093 battery at 9% — may go offline",
     time: "14m ago",
     read: false,
-    color: "#FFC107",
+    colorCls: "text-amber-400",
+    bgCls: "bg-amber-500/10 border border-amber-500/20",
     icon: MdBatteryAlert,
   },
   {
@@ -59,46 +62,45 @@ const NOTIFICATIONS = [
     message: "All 4 microservices running. WebSocket latency 48ms",
     time: "1h ago",
     read: true,
-    color: "#198754",
+    colorCls: "text-emerald-400",
+    bgCls: "bg-emerald-500/10 border border-emerald-500/20",
     icon: MdCheckCircle,
   },
 ];
 
-// ─── Quick stats for header strip ───────────────────────────────────────────
 const LIVE_STATS = [
-  { label: "Active", value: "3,842", color: "#198754" },
-  { label: "Idle", value: "641", color: "#FFC107" },
-  { label: "Offline", value: "517", color: "#AB2E3C" },
+  { label: "Active",  value: "3,842", dotCls: "bg-emerald-400" },
+  { label: "Idle",    value: "641",   dotCls: "bg-amber-400" },
+  { label: "Offline", value: "517",   dotCls: "bg-red-500" },
 ];
 
 export default function Header({ onMenuToggle, collapsed }) {
-  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifOpen,   setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState("");
-  const [fullscreen, setFullscreen] = useState(false);
-  const [wsLatency, setWsLatency] = useState(48);
-  const notifRef = useRef(null);
+  const [searchOpen,  setSearchOpen]  = useState(false);
+  const [searchVal,   setSearchVal]   = useState("");
+  const [fullscreen,  setFullscreen]  = useState(false);
+  const [wsLatency,   setWsLatency]   = useState(48);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+
+  const notifRef   = useRef(null);
   const profileRef = useRef(null);
-  const searchRef = useRef(null);
+  const searchRef  = useRef(null);
 
   const unread = NOTIFICATIONS.filter((n) => !n.read).length;
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target))
-        setNotifOpen(false);
-      if (profileRef.current && !profileRef.current.contains(e.target))
-        setProfileOpen(false);
-      if (searchRef.current && !searchRef.current.contains(e.target))
-        setSearchOpen(false);
+      if (notifRef.current   && !notifRef.current.contains(e.target))   setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+      if (searchRef.current  && !searchRef.current.contains(e.target))  setSearchOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Simulate live latency fluctuation
   useEffect(() => {
     const interval = setInterval(() => {
       setWsLatency(Math.floor(Math.random() * 40 + 35));
@@ -116,137 +118,105 @@ export default function Header({ onMenuToggle, collapsed }) {
     }
   };
 
-  return (
-    <header
-      className="sticky top-0 z-40 flex flex-col shrink-0"
-      style={{
-        background: "#191C24",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 2px 20px rgba(0,0,0,0.3)",
-      }}
-    >
-      {/* ── Main Header Row ────────────────────────────────── */}
-      <div className="flex items-center justify-around h-16 ">
-          {/* ── Search Bar ─────────────────────────────────── */}
-          <div ref={searchRef} className="relative flex-1 max-w-sm">
-            <div
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2.5 rounded-lg px-3 h-9 cursor-text transition-all duration-200"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                border: `1px solid ${searchOpen ? "rgba(175,23,99,0.5)" : "rgba(255,255,255,0.07)"}`,
-              }}
-            >
-              <MdSearch size={17} style={{ color: "#5a6380", flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Search vehicles, drivers, trips..."
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                className="flex-1 text-sm bg-transparent outline-none border-none"
-                style={{
-                  color: "#f0f2f8",
-                  fontFamily: "'DM Sans', sans-serif",
-                  caretColor: "#AF1763",
-                }}
-              />
-              {searchVal && (
-                <button
-                  onClick={() => setSearchVal("")}
-                  className="shrink-0"
-                  style={{
-                    color: "#5a6380",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  <MdClose size={15} />
-                </button>
-              )}
-            </div>
+  const handleLogout = async () => {
+    await dispatch(logout());
+    navigate("/login");
+  };
 
-            {/* Search Dropdown */}
-            {searchOpen && searchVal && (
-              <div
-                className="absolute top-11 left-0 w-full rounded-xl overflow-hidden py-1"
-                style={{
-                  background: "#1e2230",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
-                }}
+  // ── Helper: Get initials ───────────────────────
+  const getInitials = (name) => {
+    if (!name) return "AD";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const roleLabel = (role) => {
+    if (role === "super_admin") return "Super Admin";
+    if (role === "company_admin") return "Company Admin";
+    return "Admin";
+  };
+
+  return (
+    <header className="sticky top-0 z-40 flex flex-col shrink-0 bg-[#0B0F19] border-b border-white/6 shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
+      <div className="flex items-center justify-around h-16 px-4 gap-3">
+
+        {/* ── Search Bar ─────────────────────────────────── */}
+        <div ref={searchRef} className="relative flex-1 max-w-sm">
+          <div
+            onClick={() => setSearchOpen(true)}
+            className={`
+              flex items-center gap-2.5 rounded-lg px-3 h-9 cursor-text
+              transition-all duration-200 bg-white/5
+              ${searchOpen
+                ? "border border-cyan-500/50"
+                : "border border-white/[0.07]"
+              }
+            `}
+          >
+            <MdSearch size={17} className="text-slate-600 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search vehicles, drivers, trips..."
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              className="flex-1 text-sm bg-transparent outline-none border-none text-[#f0f2f8] placeholder:text-slate-600 caret-cyan-400"
+            />
+            {searchVal && (
+              <button
+                onClick={() => setSearchVal("")}
+                className="shrink-0 text-slate-600 bg-transparent border-none cursor-pointer"
               >
-                {["Vehicle VH-4821", "Driver John Smith", "Trip #TR-9920"].map(
-                  (item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/5 transition-colors"
-                    >
-                      <MdSearch size={14} style={{ color: "#5a6380" }} />
-                      <span className="text-sm" style={{ color: "#a8b0c8" }}>
-                        {item}
-                      </span>
-                    </div>
-                  ),
-                )}
-              </div>
+                <MdClose size={15} />
+              </button>
             )}
           </div>
 
-          {/* ── Live Stats Strip (center) ───────────────────── */}
-          <div className="hidden lg:flex items-center gap-1 mx-auto">
-            {LIVE_STATS.map((s, i) => (
-              <div
-                key={s.label}
-                className="flex items-center gap-2 px-4 py-1.5 rounded-lg"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  marginRight: i < LIVE_STATS.length - 1 ? "4px" : 0,
-                }}
-              >
-                <MdCircle size={8} style={{ color: s.color }} />
-                <span
-                  className="text-xs font-semibold"
-                  style={{ color: "#f0f2f8" }}
+          {/* Search Dropdown */}
+          {searchOpen && searchVal && (
+            <div className="absolute top-11 left-0 w-full rounded-xl overflow-hidden py-1 bg-[#111827] border border-white/8 shadow-[0_16px_48px_rgba(0,0,0,0.5)] z-50">
+              {["Vehicle VH-4821", "Driver John Smith", "Trip #TR-9920"].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/5 transition-colors"
                 >
-                  {s.value}
-                </span>
-                <span className="text-xs" style={{ color: "#5a6380" }}>
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <MdSearch size={14} className="text-slate-600" />
+                  <span className="text-sm text-slate-400">{item}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Live Stats Strip ───────────────────────────── */}
+        <div className="hidden lg:flex items-center gap-1 mx-auto">
+          {LIVE_STATS.map((s, i) => (
+            <div
+              key={s.label}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/4 border border-white/6 ${i < LIVE_STATS.length - 1 ? "mr-1" : ""}`}
+            >
+              <MdCircle size={8} className={s.dotCls} />
+              <span className="text-xs font-semibold text-[#f0f2f8]">{s.value}</span>
+              <span className="text-xs text-slate-600">{s.label}</span>
+            </div>
+          ))}
+        </div>
 
         {/* ── Right Actions ───────────────────────────────── */}
         <div className="flex items-center gap-1 ml-auto">
+
           {/* WS Latency chip */}
-          <div
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-            style={{
-              background: "rgba(13,202,240,0.08)",
-              border: "1px solid rgba(13,202,240,0.15)",
-            }}
-          >
-            <RiSignalTowerFill size={13} style={{ color: "#0DCAF0" }} />
-            <span
-              className="text-xs font-mono font-semibold"
-              style={{ color: "#0DCAF0" }}
-            >
-              {wsLatency}ms
-            </span>
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-400/8 border border-cyan-400/15">
+            <RiSignalTowerFill size={13} className="text-cyan-400" />
+            <span className="text-xs font-mono font-semibold text-cyan-400">{wsLatency}ms</span>
           </div>
 
           {/* Refresh */}
           <button
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:bg-white/5"
-            style={{
-              color: "#a8b0c8",
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-            }}
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
             title="Refresh data"
           >
             <MdRefresh size={19} />
@@ -255,55 +225,31 @@ export default function Header({ onMenuToggle, collapsed }) {
           {/* Fullscreen */}
           <button
             onClick={toggleFullscreen}
-            className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:bg-white/5"
-            style={{
-              color: "#a8b0c8",
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-            }}
+            className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
             title="Toggle fullscreen"
           >
-            {fullscreen ? (
-              <MdFullscreenExit size={19} />
-            ) : (
-              <MdFullscreen size={19} />
-            )}
+            {fullscreen ? <MdFullscreenExit size={19} /> : <MdFullscreen size={19} />}
           </button>
 
           {/* Divider */}
-          <div
-            className="w-px h-6 mx-1"
-            style={{ background: "rgba(255,255,255,0.08)" }}
-          />
+          <div className="w-px h-6 mx-1 bg-white/8" />
 
           {/* ── Notification Bell ─────────────────────── */}
           <div ref={notifRef} className="relative">
             <button
-              onClick={() => {
-                setNotifOpen(!notifOpen);
-                setProfileOpen(false);
-              }}
-              className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:bg-white/5 relative"
-              style={{
-                color: notifOpen ? "#AF1763" : "#a8b0c8",
-                border: "none",
-                background: notifOpen ? "rgba(175,23,99,0.1)" : "transparent",
-                cursor: "pointer",
-              }}
+              onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
+              className={`
+                flex items-center justify-center w-9 h-9 rounded-lg
+                relative transition-all border-none cursor-pointer
+                ${notifOpen
+                  ? "text-cyan-400 bg-cyan-500/10"
+                  : "text-slate-400 bg-transparent hover:bg-white/5"
+                }
+              `}
             >
               <MdNotificationsActive size={20} />
               {unread > 0 && (
-                <span
-                  className="absolute top-1 right-1 flex items-center justify-center rounded-full text-white font-bold"
-                  style={{
-                    width: "17px",
-                    height: "17px",
-                    background: "#AB2E3C",
-                    fontSize: "9px",
-                    border: "2px solid #191C24",
-                  }}
-                >
+                <span className="absolute top-1 right-1 flex items-center justify-center w-4.25 h-4.25 rounded-full bg-red-500 text-white font-bold text-[9px] border-2 border-[#0B0F19]">
                   {unread}
                 </span>
               )}
@@ -311,111 +257,48 @@ export default function Header({ onMenuToggle, collapsed }) {
 
             {/* Notification Panel */}
             {notifOpen && (
-              <div
-                className="absolute right-0 top-12 rounded-xl overflow-hidden"
-                style={{
-                  width: "340px",
-                  background: "#1e2230",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-                  zIndex: 100,
-                }}
-              >
+              <div className="absolute right-0 top-12 w-85 rounded-xl overflow-hidden bg-[#111827] border border-white/8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] z-100">
                 {/* Panel header */}
-                <div
-                  className="flex items-center justify-between px-4 py-3"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-                >
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
                   <div className="flex items-center gap-2">
-                    <span
-                      className="text-sm font-semibold"
-                      style={{
-                        color: "#f0f2f8",
-                        fontFamily: "'Sora', sans-serif",
-                      }}
-                    >
-                      Notifications
-                    </span>
+                    <span className="text-sm font-semibold text-[#f0f2f8]">Notifications</span>
                     {unread > 0 && (
-                      <span
-                        className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{
-                          background: "rgba(171,46,60,0.2)",
-                          color: "#AB2E3C",
-                          border: "1px solid rgba(171,46,60,0.3)",
-                        }}
-                      >
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
                         {unread} new
                       </span>
                     )}
                   </div>
-                  <button
-                    className="text-xs font-medium transition-colors"
-                    style={{
-                      color: "#AF1763",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
+                  <button className="text-xs font-medium text-cyan-400 bg-transparent border-none cursor-pointer hover:opacity-80 transition-opacity">
                     Mark all read
                   </button>
                 </div>
 
                 {/* Notification list */}
-                <div
-                  className="max-h-80 overflow-y-auto"
-                  style={{ scrollbarWidth: "thin" }}
-                >
+                <div className="max-h-80 overflow-y-auto [scrollbar-width:thin]">
                   {NOTIFICATIONS.map((n) => {
                     const NIcon = n.icon;
                     return (
                       <div
                         key={n.id}
-                        className="flex gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-white/4"
-                        style={{
-                          background: !n.read
-                            ? "rgba(175,23,99,0.04)"
-                            : "transparent",
-                          borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        }}
+                        className={`
+                          flex gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-white/4
+                          border-b border-white/4
+                          ${!n.read ? "bg-cyan-500/4" : "bg-transparent"}
+                        `}
                       >
-                        {/* Icon */}
-                        <div
-                          className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5"
-                          style={{
-                            background: n.color + "18",
-                            border: `1px solid ${n.color}30`,
-                          }}
-                        >
-                          <NIcon size={17} style={{ color: n.color }} />
+                        <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5 ${n.bgCls}`}>
+                          <NIcon size={17} className={n.colorCls} />
                         </div>
-                        {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span
-                              className="text-xs font-semibold"
-                              style={{ color: n.color }}
-                            >
-                              {n.title}
-                            </span>
-                            <span
-                              className="text-xs shrink-0"
-                              style={{ color: "#5a6380" }}
-                            >
-                              {n.time}
-                            </span>
+                            <span className={`text-xs font-semibold ${n.colorCls}`}>{n.title}</span>
+                            <span className="text-xs text-slate-600 shrink-0">{n.time}</span>
                           </div>
-                          <div
-                            className="text-xs mt-0.5 leading-relaxed"
-                            style={{ color: "#a8b0c8" }}
-                          >
-                            {n.message}
-                          </div>
+                          <p className="text-xs mt-0.5 leading-relaxed text-slate-400 m-0">{n.message}</p>
                         </div>
                         {!n.read && (
                           <div className="shrink-0 mt-2">
-                            <MdCircle size={7} style={{ color: "#AF1763" }} />
+                            <MdCircle size={7} className="text-cyan-400" />
                           </div>
                         )}
                       </div>
@@ -424,19 +307,8 @@ export default function Header({ onMenuToggle, collapsed }) {
                 </div>
 
                 {/* Footer */}
-                <div
-                  className="px-4 py-3 text-center"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
-                >
-                  <button
-                    className="text-xs font-medium transition-colors hover:opacity-80"
-                    style={{
-                      color: "#0D6EFD",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
+                <div className="px-4 py-3 text-center border-t border-white/6">
+                  <button className="text-xs font-medium text-blue-400 bg-transparent border-none cursor-pointer hover:opacity-80 transition-opacity">
                     View all alerts →
                   </button>
                 </div>
@@ -447,117 +319,54 @@ export default function Header({ onMenuToggle, collapsed }) {
           {/* ── Profile Dropdown ──────────────────────── */}
           <div ref={profileRef} className="relative">
             <button
-              onClick={() => {
-                setProfileOpen(!profileOpen);
-                setNotifOpen(false);
-              }}
-              className="flex items-center gap-2.5 h-9 px-2 rounded-lg transition-all hover:bg-white/5"
-              style={{
-                border: profileOpen
-                  ? "1px solid rgba(175,23,99,0.3)"
-                  : "1px solid transparent",
-                background: profileOpen
-                  ? "rgba(175,23,99,0.08)"
-                  : "transparent",
-                cursor: "pointer",
-              }}
+              onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+              className={`
+                flex items-center gap-2.5 h-9 px-2 rounded-lg
+                transition-all cursor-pointer bg-transparent
+                ${profileOpen
+                  ? "border border-cyan-500/30 bg-cyan-500/8"
+                  : "border border-transparent hover:bg-white/5"
+                }
+              `}
             >
-              {/* Avatar */}
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                style={{
-                  background: "linear-gradient(135deg, #AF1763, #7b0e44)",
-                  boxShadow: "0 0 0 2px rgba(175,23,99,0.25)",
-                }}
-              >
-                AD
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 bg-linear-to-br from-cyan-400 to-blue-600 ring-2 ring-cyan-400/25">
+                {getInitials(user?.name)}
               </div>
               <div className="hidden md:block text-left">
-                <div
-                  className="text-xs font-semibold leading-none"
-                  style={{ color: "#f0f2f8" }}
-                >
-                  Admin User
-                </div>
-                <div className="text-xs mt-0.5" style={{ color: "#5a6380" }}>
-                  Super Admin
-                </div>
+                <p className="text-xs font-semibold leading-none text-[#f0f2f8] m-0">{user?.name || "Admin User"}</p>
+                <p className="text-xs mt-0.5 text-slate-600 m-0">{roleLabel(user?.role)}</p>
               </div>
               <MdKeyboardArrowDown
                 size={16}
-                style={{
-                  color: "#5a6380",
-                  transform: profileOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
-                }}
+                className={`text-slate-600 transition-transform duration-200 ${profileOpen ? "rotate-180" : "rotate-0"}`}
               />
             </button>
 
             {/* Profile Menu */}
             {profileOpen && (
-              <div
-                className="absolute right-0 top-12 rounded-xl py-1 overflow-hidden"
-                style={{
-                  width: "200px",
-                  background: "#1e2230",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
-                  zIndex: 100,
-                }}
-              >
+              <div className="absolute right-0 top-12 w-50 rounded-xl py-1 overflow-hidden bg-[#111827] border border-white/8 shadow-[0_16px_48px_rgba(0,0,0,0.5)] z-100">
                 {[
                   { label: "My Profile", icon: MdPerson },
-                  { label: "Settings", icon: MdSettings },
+                  { label: "Settings",   icon: MdSettings },
                 ].map((item) => {
                   const ItemIcon = item.icon;
                   return (
                     <button
                       key={item.label}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5 text-left"
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        cursor: "pointer",
-                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5 text-left bg-transparent border-none cursor-pointer"
                     >
-                      <ItemIcon size={16} style={{ color: "#a8b0c8" }} />
-                      <span
-                        className="text-sm"
-                        style={{
-                          color: "#a8b0c8",
-                          fontFamily: "'DM Sans', sans-serif",
-                        }}
-                      >
-                        {item.label}
-                      </span>
+                      <ItemIcon size={16} className="text-slate-400" />
+                      <span className="text-sm text-slate-400">{item.label}</span>
                     </button>
                   );
                 })}
-                <div
-                  style={{
-                    height: "1px",
-                    background: "rgba(255,255,255,0.06)",
-                    margin: "4px 0",
-                  }}
-                />
+                <div className="h-px bg-white/6 my-1" />
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5 text-left"
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                  }}
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5 text-left bg-transparent border-none cursor-pointer"
                 >
-                  <MdLogout size={16} style={{ color: "#AB2E3C" }} />
-                  <span
-                    className="text-sm"
-                    style={{
-                      color: "#AB2E3C",
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}
-                  >
-                    Logout
-                  </span>
+                  <MdLogout size={16} className="text-red-400" />
+                  <span className="text-sm text-red-400">Logout</span>
                 </button>
               </div>
             )}

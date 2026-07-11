@@ -11,15 +11,19 @@ dotenv.config();
 // Initialize app
 const app = express();
 
+const loggerMiddleware = require("./middlewares/logger.middleware");
+const formatIdentifiers = require("./middlewares/formatIdentifiers.middleware");
+
 // ─── Middlewares ───────────────────────────
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+app.use(loggerMiddleware);
+app.use(formatIdentifiers);
 
 // ─── Routes ────────────────────────────────
-const routes = require("./routes");
+const routes = require("./index/index.routes");
 const { errorHandler } = require("./middlewares/error.middleware");
 app.use("/api/v1", routes);
 

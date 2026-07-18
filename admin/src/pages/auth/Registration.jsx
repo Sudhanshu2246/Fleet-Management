@@ -5,20 +5,20 @@ import { login, registerCompany } from "../../Redux/Thunks/auth.thunks";
 import { useNavigate } from "react-router-dom";
 /* ─── DESIGN TOKENS (matching home page) ──────────────────────────────────────── */
 export const C = {
-  dark: "#0B0F19",
-  darker: "#060912",
-  card: "#111827",
-  card2: "#1a2332",
-  border: "rgba(255,255,255,0.06)",
-  text: "#f0f2f8",
-  textSec: "#a0aec0",
-  textMut: "#5a6380",
-  cyan: "#22d3ee",
-  blue: "#3b82f6",
-  violet: "#8b5cf6",
-  green: "#10b981",
+  dark: "#F0F4F8",
+  darker: "#E2E8F0",
+  card: "rgba(255, 255, 255, 0.65)",
+  card2: "rgba(255, 255, 255, 0.45)",
+  border: "rgba(255, 255, 255, 0.6)",
+  text: "#111827",
+  textSec: "#4B5563",
+  textMut: "#6B7280",
+  cyan: "#D4AF37",
+  blue: "#D4AF37",
+  violet: "#B68A1F",
+  green: "#D4AF37",
   red: "#ef4444",
-  yellow: "#f59e0b",
+  yellow: "#F4D46B",
 };
 
 /* ─── ICON PRIMITIVES (unchanged) ────────────────────────────────────────────── */
@@ -179,62 +179,112 @@ export const SelectField = ({
   value,
   onChange,
   error,
-}) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-    <label
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        color: C.textSec,
-        letterSpacing: "0.05em",
-      }}
-    >
-      {label}
-      {required && <span style={{ color: C.red, marginLeft: 3 }}>*</span>}
-    </label>
-    <select
-      name={name}
-      value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        width: "100%",
-        boxSizing: "border-box",
-        background: C.dark,
-        border: `1px solid ${error ? C.red + "80" : C.border}`,
-        borderRadius: 10,
-        color: value ? C.text : C.textMut,
-        fontSize: 14,
-        padding: "11px 14px",
-        outline: "none",
-        cursor: "pointer",
-        appearance: "none",
-        WebkitAppearance: "none",
-      }}
-      onFocus={(e) => (e.target.style.borderColor = C.cyan + "60")}
-      onBlur={(e) =>
-        (e.target.style.borderColor = error ? C.red + "80" : C.border)
-      }
-    >
-      <option
-        value=""
-        disabled
-        style={{ background: C.card, color: C.textMut }}
+}) => {
+  const [open, setOpen] = useState(false);
+  const selectedLabel = options.find((o) => o.value === value)?.label;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, position: "relative" }}>
+      <label
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: C.textSec,
+          letterSpacing: "0.05em",
+        }}
       >
-        Select fleet size
-      </option>
-      {options.map((o) => (
-        <option
-          key={o.value}
-          value={o.value}
-          style={{ background: C.card, color: C.text }}
-        >
-          {o.label}
-        </option>
-      ))}
-    </select>
-    {error && <span style={{ fontSize: 11, color: C.red }}>{error}</span>}
-  </div>
-);
+        {label}
+        {required && <span style={{ color: C.red, marginLeft: 3 }}>*</span>}
+      </label>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          background: C.dark,
+          border: `1px solid ${error ? C.red + "80" : open ? C.cyan + "60" : C.border}`,
+          borderRadius: 10,
+          color: value ? C.text : C.textMut,
+          fontSize: 14,
+          padding: "11px 14px",
+          cursor: "pointer",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          transition: "all 0.2s",
+        }}
+      >
+        <span>{selectedLabel || "Select company type"}</span>
+        <motion.div animate={{ rotate: open ? 180 : 0 }}>
+          <Ico d={Icons.arrow} size={14} color={C.textSec} />
+        </motion.div>
+      </div>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <div 
+              onClick={() => setOpen(false)} 
+              style={{ position: "fixed", inset: 0, zIndex: 100 }} 
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                marginTop: 6,
+                background: C.card,
+                backdropFilter: "blur(24px)",
+                border: `1px solid ${C.border}`,
+                borderRadius: 12,
+                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                overflow: "hidden",
+                zIndex: 101,
+              }}
+            >
+              {options.map((o) => (
+                <div
+                  key={o.value}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = C.dark;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                  style={{
+                    padding: "12px 14px",
+                    fontSize: 14,
+                    color: C.text,
+                    cursor: "pointer",
+                    transition: "background 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {o.label}
+                  {value === o.value && (
+                    <Ico d={Icons.check} size={14} color={C.cyan} />
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      {error && <span style={{ fontSize: 11, color: C.red }}>{error}</span>}
+    </div>
+  );
+};
 
 export const RightContent = ({ mode, success, step }) => {
   if (mode === "login") {
@@ -508,10 +558,16 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
     name: "",
     phone: "",
     companyName: "",
-    companyGST: "",
-    companyAddress: "",
-    companySize: "",
-    gstFile: null,
+      companyType: "",
+      companyAddress: "",
+      gstIn: "",
+      legalName: "",
+      gstEmail: "",
+      gstPhone: "",
+      gstAddress: "",
+      panNumber: "",
+      gstDoc: null,
+      panImg: null,
   });
   const [errors, setErrors] = useState({});
   const fileRef = useRef(null);
@@ -566,14 +622,20 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
 
   const validateStep2 = () => {
     let ok = true;
-    if (!form.companyName.trim()) {
-      err("companyName", "Company name is required");
-      ok = false;
-    }
-    if (!form.companySize) {
-      err("companySize", "Please select fleet size");
-      ok = false;
-    }
+    if (!form.companyName.trim()) { err("companyName", "Required"); ok = false; }
+    if (!form.companyType) { err("companyType", "Required"); ok = false; }
+    if (!form.companyAddress.trim()) { err("companyAddress", "Required"); ok = false; }
+    return ok;
+  };
+
+  const validateStep3 = () => {
+    let ok = true;
+    if (!form.gstIn.trim()) { err("gstIn", "Required"); ok = false; }
+    if (!form.legalName.trim()) { err("legalName", "Required"); ok = false; }
+    if (!form.gstEmail.trim()) { err("gstEmail", "Required"); ok = false; }
+    if (!form.gstPhone.trim()) { err("gstPhone", "Required"); ok = false; }
+    if (!form.gstAddress.trim()) { err("gstAddress", "Required"); ok = false; }
+    if (!form.panNumber.trim()) { err("panNumber", "Required"); ok = false; }
     return ok;
   };
 
@@ -599,12 +661,13 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
   };
   const handleNext = () => {
     setErrors({});
-    if (validateStep1()) setStep(2);
+    if (step === 1 && validateStep1()) setStep(2);
+    else if (step === 2 && validateStep2()) setStep(3);
   };
 
   const handleSubmit = async () => {
     setErrors({});
-    if (!validateStep2()) return;
+    if (!validateStep3()) return;
 
     const formData = new FormData();
 
@@ -612,14 +675,20 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
     formData.append("email", form.email);
     formData.append("password", form.password);
     formData.append("phone", form.phone);
+    
     formData.append("companyName", form.companyName);
-    formData.append("companyGST", form.companyGST);
+    formData.append("companyType", form.companyType);
     formData.append("companyAddress", form.companyAddress);
-    formData.append("companySize", form.companySize);
-
-    if (form.gstFile) {
-      formData.append("gstFile", form.gstFile);
-    }
+    
+    formData.append("gstIn", form.gstIn);
+    formData.append("legalName", form.legalName);
+    formData.append("gstEmail", form.gstEmail);
+    formData.append("gstPhone", form.gstPhone);
+    formData.append("gstAddress", form.gstAddress);
+    formData.append("panNumber", form.panNumber);
+    
+    if (form.gstDoc) formData.append("gstDoc", form.gstDoc);
+    if (form.panImg) formData.append("panImg", form.panImg);
 
     const res = await dispatch(registerCompany(formData));
 
@@ -651,11 +720,17 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
       remember: false,
       name: "",
       phone: "",
-      companyName: "",  
-      companyGST: "",
+      companyName: "",
+      companyType: "",
       companyAddress: "",
-      companySize: "",
-      gstFile: null,
+      gstIn: "",
+      legalName: "",
+      gstEmail: "",
+      gstPhone: "",
+      gstAddress: "",
+      panNumber: "",
+      gstDoc: null,
+      panImg: null,
     });
     setErrors({});
     onClose();
@@ -681,9 +756,9 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 200,
-            background: "rgba(6,9,18,0.9)",
-            backdropFilter: "blur(8px)",
+            background: "rgba(255,255,255,0.3)",
+            backdropFilter: "blur(24px)",
+            zIndex: 9999,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -699,7 +774,7 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
             style={{
               position: "relative",
               width: "100%",
-              maxWidth: 960,
+              maxWidth: 1060,
               maxHeight: "90vh",
               overflow: "auto",
               background: C.card,
@@ -1059,454 +1134,92 @@ const RegisterCompanyModal = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 16,
-                    }}
+                    style={{ display: "flex", flexDirection: "column", gap: 16 }}
                   >
                     <div style={{ marginBottom: 4 }}>
-                      <div
-                        style={{ fontWeight: 600, fontSize: 15, color: C.text }}
-                      >
-                        Admin Account
-                      </div>
-                      <div
-                        style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}
-                      >
-                        These credentials will be used to log in.
-                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: C.text }}>Step 1: Admin Account</div>
+                      <div style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}>Primary contact and admin login credentials.</div>
                     </div>
-                    <InputField
-                      label="Full Name"
-                      name="name"
-                      icon="user"
-                      placeholder="John Doe"
-                      required
-                      value={form.name}
-                      error={errors.name}
-                      onChange={(v) => {
-                        set("name", v);
-                        clearErr("name");
-                      }}
-                    />
-                    <InputField
-                      label="Email Address"
-                      name="email"
-                      type="email"
-                      icon="mail"
-                      placeholder="john@company.com"
-                      required
-                      value={form.email}
-                      error={errors.email}
-                      onChange={(v) => {
-                        set("email", v);
-                        clearErr("email");
-                      }}
-                    />
-                    <InputField
-                      label="Password"
-                      name="password"
-                      type={showPass ? "text" : "password"}
-                      icon="lock"
-                      placeholder="Min 8 characters"
-                      required
-                      rightEl={
-                        <button
-                          onClick={() => setShowPass((p) => !p)}
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: C.textMut,
-                            padding: 0,
-                          }}
-                        >
-                          <Ico
-                            d={showPass ? Icons.eyeOff : Icons.eye}
-                            size={16}
-                          />
-                        </button>
-                      }
-                      value={form.password}
-                      error={errors.password}
-                      onChange={(v) => {
-                        set("password", v);
-                        clearErr("password");
-                      }}
-                    />
-                    <InputField
-                      label="Phone Number"
-                      name="phone"
-                      type="tel"
-                      icon="phone"
-                      placeholder="+91 98765 43210"
-                      value={form.phone}
-                      error={errors.phone}
-                      onChange={(v) => {
-                        set("phone", v);
-                        clearErr("phone");
-                      }}
-                    />
-                    {form.password && (
-                      <div style={{ display: "flex", gap: 4, marginTop: -8 }}>
-                        {[1, 2, 3, 4].map((i) => {
-                          const strength = Math.min(
-                            4,
-                            Math.floor(form.password.length / 3),
-                          );
-                          const col =
-                            strength <= 1
-                              ? C.red
-                              : strength === 2
-                                ? C.yellow
-                                : strength === 3
-                                  ? C.cyan
-                                  : C.green;
-                          return (
-                            <div
-                              key={i}
-                              style={{
-                                flex: 1,
-                                height: 3,
-                                borderRadius: 2,
-                                background: i <= strength ? col : C.border,
-                                transition: "background 0.3s",
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
-                    <button
-                      onClick={handleNext}
-                      style={{
-                        marginTop: 8,
-                        background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
-                        border: "none",
-                        color: "#fff",
-                        padding: "13px 24px",
-                        borderRadius: 10,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        boxShadow: `0 4px 20px ${C.cyan}40`,
-                      }}
-                    >
-                      Continue to Company Details
-                      <Ico d={Icons.arrow} color="#fff" size={15} />
+                    <InputField label="Full Name" name="name" icon="user" placeholder="John Doe" required value={form.name} error={errors.name} onChange={(v) => { set("name", v); clearErr("name"); }} />
+                    <InputField label="Email Address" name="email" type="email" icon="mail" placeholder="admin@company.com" required value={form.email} error={errors.email} onChange={(v) => { set("email", v); clearErr("email"); }} />
+                    <InputField label="Phone Number" name="phone" type="tel" icon="phone" placeholder="+91 98765 43210" value={form.phone} error={errors.phone} onChange={(v) => { set("phone", v); clearErr("phone"); }} />
+                    <InputField label="Password" name="password" type={showPass ? "text" : "password"} icon="lock" placeholder="Min 8 characters" required rightEl={<button onClick={() => setShowPass((p) => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.textMut, padding: 0 }}><Ico d={showPass ? Icons.eyeOff : Icons.eye} size={16} /></button>} value={form.password} error={errors.password} onChange={(v) => { set("password", v); clearErr("password"); }} />
+                    <button onClick={handleNext} style={{ marginTop: 8, background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`, border: "none", color: "#fff", padding: "13px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 20px ${C.cyan}40` }}>
+                      Continue to Company Details <Ico d={Icons.arrow} color="#fff" size={15} />
                     </button>
                   </motion.div>
-                ) : (
+                ) : step === 2 ? (
                   <motion.div
                     key="step2"
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 16,
-                    }}
+                    exit={{ opacity: 0, x: -10 }}
+                    style={{ display: "flex", flexDirection: "column", gap: 16 }}
                   >
                     <div style={{ marginBottom: 4 }}>
-                      <div
-                        style={{ fontWeight: 600, fontSize: 15, color: C.text }}
-                      >
-                        Company Details
-                      </div>
-                      <div
-                        style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}
-                      >
-                        Your organization profile on FleetIQ.
-                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: C.text }}>Step 2: Company Details</div>
+                      <div style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}>General information about the organization.</div>
                     </div>
-                    <InputField
-                      label="Company Name"
-                      name="companyName"
-                      icon="building"
-                      placeholder="Acme Logistics Pvt. Ltd."
-                      required
-                      value={form.companyName}
-                      error={errors.companyName}
-                      onChange={(v) => {
-                        set("companyName", v);
-                        clearErr("companyName");
-                      }}
-                    />
+                    <InputField label="Company Name" name="companyName" icon="building" placeholder="Acme Logistics Pvt. Ltd." required value={form.companyName} error={errors.companyName} onChange={(v) => { set("companyName", v); clearErr("companyName"); }} />
                     <SelectField
-                      label="Fleet Size"
-                      name="companySize"
+                      label="Company Type"
+                      name="companyType"
                       required
                       options={[
-                        { value: "1-10", label: "1–10 vehicles" },
-                        { value: "11-50", label: "11–50 vehicles" },
-                        { value: "51-200", label: "51–200 vehicles" },
-                        { value: "201-500", label: "201–500 vehicles" },
-                        { value: "500+", label: "500+ vehicles" },
+                        { value: "private_limited", label: "Private Limited" },
+                        { value: "public_limited", label: "Public Limited" },
+                        { value: "llp", label: "LLP" },
+                        { value: "partnership", label: "Partnership" },
+                        { value: "sole_proprietorship", label: "Sole Proprietorship" },
+                        { value: "ngo", label: "NGO" },
+                        { value: "other", label: "Other" },
                       ]}
-                      value={form.companySize}
-                      error={errors.companySize}
-                      onChange={(v) => {
-                        set("companySize", v);
-                        clearErr("companySize");
-                      }}
+                      value={form.companyType} error={errors.companyType} onChange={(v) => { set("companyType", v); clearErr("companyType"); }}
                     />
-                    <InputField
-                      label="GST Number"
-                      name="companyGST"
-                      icon="shield"
-                      placeholder="22AAAAA0000A1Z5"
-                      value={form.companyGST}
-                      error={errors.companyGST}
-                      onChange={(v) => {
-                        set("companyGST", v);
-                        clearErr("companyGST");
-                      }}
-                    />
-                    <InputField
-                      label="Company Address"
-                      name="companyAddress"
-                      icon="map"
-                      placeholder="123 Fleet Nagar, Mumbai, MH 400001"
-                      value={form.companyAddress}
-                      error={errors.companyAddress}
-                      onChange={(v) => {
-                        set("companyAddress", v);
-                        clearErr("companyAddress");
-                      }}
-                    />
+                    <InputField label="Company Address" name="companyAddress" icon="map" placeholder="123 Fleet Nagar, Mumbai" required value={form.companyAddress} error={errors.companyAddress} onChange={(v) => { set("companyAddress", v); clearErr("companyAddress"); }} />
+                    <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                      <button onClick={() => setStep(1)} style={{ flex: 1, background: "none", border: `1px solid ${C.border}`, color: C.textSec, padding: "13px 16px", borderRadius: 10, fontSize: 14, cursor: "pointer" }}>← Back</button>
+                      <button onClick={handleNext} style={{ flex: 2, background: `linear-gradient(135deg, ${C.cyan}, ${C.blue})`, border: "none", color: "#fff", padding: "13px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 20px ${C.cyan}40` }}>Continue to Compliance <Ico d={Icons.arrow} color="#fff" size={15} /></button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    style={{ display: "flex", flexDirection: "column", gap: 16 }}
+                  >
+                    <div style={{ marginBottom: 4 }}>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: C.text }}>Step 3: Compliance & Taxes</div>
+                      <div style={{ fontSize: 13, color: C.textMut, marginTop: 3 }}>GST and PAN information.</div>
+                    </div>
+                    <InputField label="GST Number" name="gstIn" icon="shield" placeholder="22AAAAA0000A1Z5" required value={form.gstIn} error={errors.gstIn} onChange={(v) => { set("gstIn", v); clearErr("gstIn"); }} />
+                    <InputField label="GST Legal Name" name="legalName" icon="building" placeholder="Acme Logistics" required value={form.legalName} error={errors.legalName} onChange={(v) => { set("legalName", v); clearErr("legalName"); }} />
+                    <InputField label="GST Email" name="gstEmail" type="email" icon="mail" placeholder="finance@company.com" required value={form.gstEmail} error={errors.gstEmail} onChange={(v) => { set("gstEmail", v); clearErr("gstEmail"); }} />
+                    <InputField label="GST Phone" name="gstPhone" type="tel" icon="phone" placeholder="+91 98765 43210" required value={form.gstPhone} error={errors.gstPhone} onChange={(v) => { set("gstPhone", v); clearErr("gstPhone"); }} />
+                    <InputField label="GST Address" name="gstAddress" icon="map" placeholder="Registered Address" required value={form.gstAddress} error={errors.gstAddress} onChange={(v) => { set("gstAddress", v); clearErr("gstAddress"); }} />
+                    <InputField label="PAN Number" name="panNumber" icon="shield" placeholder="ABCDE1234F" required value={form.panNumber} error={errors.panNumber} onChange={(v) => { set("panNumber", v); clearErr("panNumber"); }} />
+                    
+                    {/* GST Document Upload */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: C.textSec, letterSpacing: "0.05em" }}>GST Certificate <span style={{ color: C.textMut, fontWeight: 400 }}>(PDF or image)</span></label>
+                      <input type="file" accept=".pdf,image/*" onChange={(e) => e.target.files && set("gstDoc", e.target.files[0])} style={{fontSize:12,color:C.textSec}}/>
+                    </div>
 
-                    {/* GST Upload */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 6,
-                      }}
-                    >
-                      <label
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: C.textSec,
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        GST Certificate{" "}
-                        <span style={{ color: C.textMut, fontWeight: 400 }}>
-                          (PDF or image)
-                        </span>
-                      </label>
-                      <div
-                        onClick={() => fileRef.current?.click()}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setDragOver(true);
-                        }}
-                        onDragLeave={() => setDragOver(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setDragOver(false);
-                          handleFile(e.dataTransfer.files[0]);
-                        }}
-                        style={{
-                          border: `1.5px dashed ${
-                            dragOver
-                              ? C.cyan
-                              : form.gstFile
-                                ? C.green + "60"
-                                : C.border
-                          }`,
-                          borderRadius: 12,
-                          padding: "18px 16px",
-                          textAlign: "center",
-                          cursor: "pointer",
-                          background: dragOver
-                            ? `${C.cyan}08`
-                            : form.gstFile
-                              ? `${C.green}08`
-                              : "transparent",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {form.gstFile ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 8,
-                                background: `${C.green}20`,
-                                border: `1px solid ${C.green}40`,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Ico d={Icons.check} color={C.green} size={16} />
-                            </div>
-                            <div style={{ textAlign: "left" }}>
-                              <div
-                                style={{
-                                  fontSize: 13,
-                                  color: C.text,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {form.gstFile.name}
-                              </div>
-                              <div style={{ fontSize: 11, color: C.textMut }}>
-                                {(form.gstFile.size / 1024).toFixed(1)} KB ·
-                                Click to change
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 10,
-                                background: `${C.cyan}15`,
-                                border: `1px solid ${C.cyan}30`,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                margin: "0 auto 10px",
-                              }}
-                            >
-                              <Ico
-                                d={Icons.database}
-                                color={C.cyan}
-                                size={18}
-                              />
-                            </div>
-                            <div style={{ fontSize: 13, color: C.textSec }}>
-                              <span style={{ color: C.cyan, fontWeight: 600 }}>
-                                Click to upload
-                              </span>{" "}
-                              or drag & drop
-                            </div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: C.textMut,
-                                marginTop: 4,
-                              }}
-                            >
-                              PDF, JPG, PNG up to 5MB
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <input
-                        ref={fileRef}
-                        type="file"
-                        accept=".pdf,image/*"
-                        style={{ display: "none" }}
-                        onChange={(e) =>
-                          e.target.files && handleFile(e.target.files[0])
-                        }
-                      />
+                    {/* PAN Image Upload */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: C.textSec, letterSpacing: "0.05em" }}>PAN Card Image <span style={{ color: C.textMut, fontWeight: 400 }}>(Image)</span></label>
+                      <input type="file" accept="image/*" onChange={(e) => e.target.files && set("panImg", e.target.files[0])} style={{fontSize:12,color:C.textSec}}/>
                     </div>
 
                     <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                      <button
-                        onClick={() => setStep(1)}
-                        style={{
-                          flex: 1,
-                          background: "none",
-                          border: `1px solid ${C.border}`,
-                          color: C.textSec,
-                          padding: "13px 16px",
-                          borderRadius: 10,
-                          fontSize: 14,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ← Back
-                      </button>
-                      <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        style={{
-                          flex: 2,
-                          background: loading
-                            ? `${C.cyan}60`
-                            : `linear-gradient(135deg, ${C.cyan}, ${C.blue})`,
-                          border: "none",
-                          color: "#fff",
-                          padding: "13px 24px",
-                          borderRadius: 10,
-                          fontSize: 14,
-                          fontWeight: 600,
-                          cursor: loading ? "not-allowed" : "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 8,
-                          boxShadow: loading
-                            ? "none"
-                            : `0 4px 20px ${C.cyan}40`,
-                        }}
-                      >
-                        {loading ? (
-                          <>
-                            <motion.span
-                              animate={{ rotate: 360 }}
-                              transition={{ repeat: Infinity, duration: 0.8 }}
-                              style={{
-                                width: 14,
-                                height: 14,
-                                border: "2px solid rgba(255,255,255,0.3)",
-                                borderTopColor: "#fff",
-                                borderRadius: "50%",
-                              }}
-                            />
-                            Registering…
-                          </>
-                        ) : (
-                          <>
-                            Register Company
-                            <Ico d={Icons.check} color="#fff" size={15} />
-                          </>
-                        )}
+                      <button onClick={() => setStep(2)} style={{ flex: 1, background: "none", border: `1px solid ${C.border}`, color: C.textSec, padding: "13px 16px", borderRadius: 10, fontSize: 14, cursor: "pointer" }}>← Back</button>
+                      <button onClick={handleSubmit} disabled={loading} style={{ flex: 2, background: loading ? `${C.cyan}60` : `linear-gradient(135deg, ${C.cyan}, ${C.blue})`, border: "none", color: "#fff", padding: "13px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: loading ? "none" : `0 4px 20px ${C.cyan}40` }}>
+                        {loading ? "Registering..." : "Complete Registration"}
                       </button>
                     </div>
-                    <p
-                      style={{
-                        textAlign: "center",
-                        fontSize: 12,
-                        color: C.textMut,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      By registering you agree to FleetIQ's{" "}
-                      <span style={{ color: C.cyan, cursor: "pointer" }}>
-                        Terms of Service
-                      </span>{" "}
-                      &{" "}
-                      <span style={{ color: C.cyan, cursor: "pointer" }}>
-                        Privacy Policy
-                      </span>
-                    </p>
+                    <p style={{ textAlign: "center", fontSize: 12, color: C.textMut, lineHeight: 1.6 }}>By registering you agree to FleetIQ's <span style={{ color: C.cyan, cursor: "pointer" }}>Terms of Service</span> & <span style={{ color: C.cyan, cursor: "pointer" }}>Privacy Policy</span></p>
                   </motion.div>
                 )}
               </div>

@@ -14,9 +14,9 @@ import { RiSignalTowerFill } from "react-icons/ri";
 
 /* ── Live stats shown on the left panel ────────────────────────────────────── */
 const PANEL_STATS = [
-  { label: "Devices Online", value: "3,842", color: "#198754" },
-  { label: "GPS Updates / sec", value: "1,000", color: "#0DCAF0" },
-  { label: "Organisations", value: "48", color: "#AF1763" },
+  { label: "Devices Online", value: "3,842", color: "#D4AF37" },
+  { label: "GPS Updates / sec", value: "1,000", color: "#D4AF37" },
+  { label: "Organisations", value: "48", color: "#D4AF37" },
 ];
 
 /* ── Feature list ─────────────────────────────────────────────────────────── */
@@ -67,7 +67,7 @@ export default function Login() {
             ...styles.blob,
             top: "10%",
             left: "20%",
-            background: "rgba(175,23,99,0.18)",
+            background: "rgba(212,175,55,0.18)",
             width: 320,
             height: 320,
           }}
@@ -77,7 +77,7 @@ export default function Login() {
             ...styles.blob,
             bottom: "15%",
             right: "10%",
-            background: "rgba(13,110,253,0.12)",
+            background: "rgba(212,175,55,0.12)",
             width: 260,
             height: 260,
           }}
@@ -87,7 +87,7 @@ export default function Login() {
             ...styles.blob,
             top: "50%",
             left: "50%",
-            background: "rgba(13,202,240,0.08)",
+            background: "rgba(212,175,55,0.08)",
             width: 200,
             height: 200,
             transform: "translate(-50%,-50%)",
@@ -110,14 +110,14 @@ export default function Login() {
           {/* Headline */}
           <div style={{ marginTop: "auto", marginBottom: 0 }}>
             <div style={styles.panelEyebrow}>
-              <RiSignalTowerFill size={13} color="#0DCAF0" />
+              <RiSignalTowerFill size={13} color="#D4AF37" />
               <span>Live Operations Platform</span>
             </div>
 
             <h1 style={styles.panelHeading}>
               Command your fleet
               <br />
-              <span style={{ color: "#AF1763" }}>in real-time.</span>
+              <span style={{ color: "#D4AF37" }}>in real-time.</span>
             </h1>
 
             <p style={styles.panelSub}>
@@ -140,7 +140,7 @@ export default function Login() {
                 <li key={f} style={styles.featureItem}>
                   <MdCircle
                     size={6}
-                    style={{ color: "#AF1763", flexShrink: 0, marginTop: 2 }}
+                    style={{ color: "#D4AF37", flexShrink: 0, marginTop: 2 }}
                   />
                   <span>{f}</span>
                 </li>
@@ -199,7 +199,7 @@ export default function Login() {
                 <MdEmail
                   size={17}
                   style={{
-                    color: emailFocus ? "#AF1763" : "#5a6380",
+                    color: emailFocus ? "#D4AF37" : "#5a6380",
                     flexShrink: 0,
                     transition: "color 0.2s",
                   }}
@@ -236,7 +236,7 @@ export default function Login() {
                 <MdLock
                   size={17}
                   style={{
-                    color: passFocus ? "#AF1763" : "#5a6380",
+                    color: passFocus ? "#D4AF37" : "#5a6380",
                     flexShrink: 0,
                     transition: "color 0.2s",
                   }}
@@ -271,8 +271,8 @@ export default function Login() {
                 onClick={() => setRemember((v) => !v)}
                 style={{
                   ...styles.checkbox,
-                  background: remember ? "#AF1763" : "transparent",
-                  borderColor: remember ? "#AF1763" : "rgba(255,255,255,0.15)",
+                  background: remember ? "#D4AF37" : "transparent",
+                  borderColor: remember ? "#D4AF37" : "rgba(255,255,255,0.15)",
                 }}
               >
                 {remember && (
@@ -305,10 +305,10 @@ export default function Login() {
               disabled={loading}
               style={styles.submitBtn(loading)}
               onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.background = "#8d1250";
+                if (!loading) e.currentTarget.style.background = "#B68A1F";
               }}
               onMouseLeave={(e) => {
-                if (!loading) e.currentTarget.style.background = "#AF1763";
+                if (!loading) e.currentTarget.style.background = "#D4AF37";
               }}
             >
               {loading ? (
@@ -355,8 +355,8 @@ const styles = {
   root: {
     display: "flex",
     minHeight: "100vh",
-    background: "#0f1117",
-    fontFamily: "'DM Sans', sans-serif",
+    background: "#EDECF1",
+    fontFamily: "'Google Sans', sans-serif",
   },
 
   /* Left panel */
@@ -364,7 +364,7 @@ const styles = {
     flex: "0 0 46%",
     position: "relative",
     overflow: "hidden",
-    background: "#191C24",
+    background: "#0C0D0D",
     display: "flex",
     flexDirection: "column",
   },
@@ -372,7 +372,7 @@ const styles = {
     position: "absolute",
     inset: 0,
     backgroundImage:
-      "linear-gradient(rgba(13,110,253,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(13,110,253,0.07) 1px, transparent 1px)",
+      "linear-gradient(rgba(212,175,55,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.07) 1px, transparent 1px)",
     backgroundSize: "40px 40px",
     animation: "gridMove 20s linear infinite",
   },
@@ -388,7 +388,7 @@ const styles = {
     left: 0,
     right: 0,
     height: 120,
-    background: "linear-gradient(to top, #191C24, transparent)",
+    background: "linear-gradient(to top, #0C0D0D, transparent)",
     pointerEvents: "none",
   },
   panelContent: {
@@ -411,8 +411,8 @@ const styles = {
     width: 40,
     height: 40,
     borderRadius: 11,
-    background: "linear-gradient(135deg, #AF1763 0%, #7b0e44 100%)",
-    boxShadow: "0 4px 16px rgba(175,23,99,0.45)",
+    background: "linear-gradient(135deg, #D4AF37 0%, #D4AF37 100%)",
+    boxShadow: "0 4px 16px rgba(212,175,55,0.45)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -422,14 +422,14 @@ const styles = {
     fontSize: 17,
     fontWeight: 700,
     color: "#f0f2f8",
-    fontFamily: "'Sora', sans-serif",
+    fontFamily: "'Google Sans', sans-serif",
     letterSpacing: "-0.01em",
     lineHeight: 1.1,
   },
   logoBadge: {
     fontSize: 9,
     fontWeight: 700,
-    color: "#AF1763",
+    color: "#D4AF37",
     letterSpacing: "0.12em",
     marginTop: 2,
   },
@@ -537,9 +537,9 @@ const styles = {
     padding: "0 14px",
     borderRadius: 10,
     background: "rgba(255,255,255,0.04)",
-    border: `1.5px solid ${focused ? "rgba(175,23,99,0.55)" : "rgba(255,255,255,0.08)"}`,
+    border: `1.5px solid ${focused ? "rgba(212,175,55,0.55)" : "rgba(255,255,255,0.08)"}`,
     transition: "border-color 0.2s, box-shadow 0.2s",
-    boxShadow: focused ? "0 0 0 3px rgba(175,23,99,0.1)" : "none",
+    boxShadow: focused ? "0 0 0 3px rgba(212,175,55,0.1)" : "none",
   }),
   input: {
     flex: 1,
@@ -549,7 +549,7 @@ const styles = {
     fontSize: 14,
     color: "#f0f2f8",
     fontFamily: "'DM Sans', sans-serif",
-    caretColor: "#AF1763",
+    caretColor: "#D4AF37",
     minWidth: 0,
   },
   eyeBtn: {
@@ -582,7 +582,7 @@ const styles = {
   submitBtn: (loading) => ({
     height: 46,
     borderRadius: 10,
-    background: loading ? "#6b0d3c" : "#AF1763",
+    background: loading ? "#6b0d3c" : "#D4AF37",
     color: "#fff",
     border: "none",
     fontSize: 14,
@@ -594,7 +594,7 @@ const styles = {
     justifyContent: "center",
     gap: 8,
     marginTop: 4,
-    boxShadow: "0 4px 18px rgba(175,23,99,0.35)",
+    boxShadow: "0 4px 18px rgba(212,175,55,0.35)",
     transition: "background 0.15s, transform 0.1s",
     opacity: loading ? 0.85 : 1,
   }),
@@ -637,7 +637,7 @@ const styles = {
   },
   forgotLink: {
     fontSize: 12,
-    color: "#AF1763",
+    color: "#D4AF37",
     textDecoration: "none",
     fontWeight: 500,
   },
@@ -647,7 +647,7 @@ const styles = {
     textAlign: "center",
   },
   switchLink: {
-    color: "#AF1763",
+    color: "#D4AF37",
     textDecoration: "none",
     fontWeight: 600,
   },

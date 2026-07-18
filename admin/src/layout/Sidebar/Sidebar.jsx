@@ -18,6 +18,7 @@ import {
   MdGpsFixed,
   MdLogout,
   MdSettings,
+  MdAssignment,
 } from "react-icons/md";
 import { RiSignalTowerFill } from "react-icons/ri";
 import { NavLink } from "react-router-dom";
@@ -46,6 +47,7 @@ const NAV_GROUPS = [
     items: [
       { id: "vehicles", to: `${DASH}/vehicles`, label: "Vehicle Management",  icon: MdDirectionsCar, badge: null, badgeCls: "" },
       { id: "drivers",  to: `${DASH}/drivers`,  label: "Drivers Management",  icon: MdPeople,        badge: null, badgeCls: "" },
+      { id: "assign-vehicle", to: `${DASH}/assign-vehicle`, label: "Assign Vehicle", icon: MdAssignment, badge: null, badgeCls: "" },
     ],
   },
   {
@@ -82,8 +84,8 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
     <aside
       className={`
         fixed top-0 left-0 h-screen z-50 flex flex-col
-        bg-[#0B0F19] border-r border-white/6
-        shadow-[4px_0_24px_rgba(0,0,0,0.4)]
+        bg-[#F0F4F8] border-r border-[#111827]/10
+        shadow-[4px_0_24px_rgba(0,0,0,0.1)]
         transition-all duration-300 ease-in-out
         ${collapsed ? "w-18" : "w-65"}
       `}
@@ -92,12 +94,12 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
       <div
         className={`
           flex items-center shrink-0 overflow-hidden h-16
-          border-b border-white/6
+          border-b border-[#111827]/10
           ${collapsed ? "px-4.5" : "px-5.5"}
         `}
       >
-        <div className="flex items-center justify-center shrink-0 w-9 h-9 rounded-lg bg-linear-to-br from-cyan-400 to-blue-600 shadow-[0_4px_14px_rgba(34,211,238,0.35)]">
-          <MdGpsFixed className="text-white" size={20} />
+        <div className="flex items-center justify-center shrink-0 w-9 h-9 rounded-lg bg-[#D4AF37] shadow-[0_4px_14px_rgba(212,175,55,0.35)]">
+          <MdGpsFixed className="text-[#111827]" size={20} />
         </div>
 
         <div
@@ -106,10 +108,10 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
             ${collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"}
           `}
         >
-          <p className="text-[15px] font-bold tracking-tight leading-none text-[#f0f2f8] font-[Sora,sans-serif] m-0">
-            Fleet<span className="text-cyan-400">IQ</span>
+          <p className="text-[15px] font-bold tracking-tight leading-none text-[#111827] m-0">
+            Fleet<span className="text-[#D4AF37]">IQ</span>
           </p>
-          <p className="text-xs mt-0.5 text-cyan-400 font-semibold tracking-[0.08em] m-0">
+          <p className="text-xs mt-0.5 text-[#D4AF37] font-semibold tracking-[0.08em] m-0">
             {user?.role === "super_admin" ? "SUPER ADMIN" : "ADMIN"}
           </p>
         </div>
@@ -117,8 +119,8 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
         {!collapsed && (
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D4AF37]" />
             </span>
           </div>
         )}
@@ -132,9 +134,9 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
           absolute top-11 -right-3.25 z-10
           flex items-center justify-center
           w-6.5 h-6.5 rounded-full
-          bg-linear-to-br from-cyan-400 to-blue-600
-          border-2 border-[#0B0F19] text-white cursor-pointer
-          shadow-[0_2px_8px_rgba(34,211,238,0.4)]
+          bg-[#D4AF37]
+          border-2 border-[#111827] text-[#111827] cursor-pointer
+          shadow-[0_2px_8px_rgba(212,175,55,0.4)]
           hover:scale-110 transition-transform duration-200
         "
       >
@@ -143,14 +145,14 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
 
       {/* ── Live Status Strip ─────────────────────────── */}
       {!collapsed && (
-        <div className="mx-3 mt-3 shrink-0 rounded-lg flex items-center gap-2 px-3 py-2.5 bg-cyan-500/[0.07] border border-cyan-500/20">
-          <RiSignalTowerFill className="text-cyan-400 shrink-0" size={16} />
+        <div className="mx-3 mt-3 shrink-0 rounded-lg flex items-center gap-2 px-3 py-2.5 bg-[#D4AF37]/[0.07] border border-[#D4AF37]/20">
+          <RiSignalTowerFill className="text-[#D4AF37] shrink-0" size={16} />
           <div>
-            <p className="text-xs font-semibold text-cyan-300 m-0">WebSocket Active</p>
-            <p className="text-xs text-slate-500 m-0">3,842 devices online</p>
+            <p className="text-xs font-semibold text-[#D4AF37] m-0">WebSocket Active</p>
+            <p className="text-xs text-[#111827]/50 m-0">3,842 devices online</p>
           </div>
           <div className="ml-auto">
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30">
               LIVE
             </span>
           </div>
@@ -162,11 +164,11 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-1">
             {!collapsed ? (
-              <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] text-slate-600 uppercase m-0">
+              <p className="px-4 py-2 text-[10px] font-semibold tracking-[0.12em] text-[#111827]/60 uppercase m-0">
                 {group.label}
               </p>
             ) : (
-              <div className="my-1 mx-4 h-px bg-white/5" />
+              <div className="my-1 mx-4 h-px bg-[#111827]/10" />
             )}
 
             {group.items.map((item) => {
@@ -187,9 +189,9 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
                     transition-all duration-150 cursor-pointer no-underline
                     ${collapsed ? "justify-center py-2.75 px-0" : "px-4 py-2.5"}
                     ${isActive
-                      ? "bg-linear-to-r from-cyan-500/15 via-blue-600/6 to-transparent"
+                      ? "bg-[#D4AF37]/10"
                       : isHovered
-                        ? "bg-white/4"
+                        ? "bg-white/65 backdrop-blur-md/4"
                         : "bg-transparent"
                     }
                   `}
@@ -197,18 +199,18 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <span className="absolute left-0 top-1 bottom-1 w-0.75 rounded-r bg-linear-to-b from-cyan-400 to-blue-500" />
+                        <span className="absolute left-0 top-1 bottom-1 w-0.75 rounded-r bg-[#D4AF37]" />
                       )}
 
                       <span className={`shrink-0 flex items-center justify-center transition-colors duration-150
-                        ${isActive ? "text-cyan-400" : isHovered ? "text-[#f0f2f8]" : "text-slate-400"}
+                        ${isActive ? "text-[#D4AF37]" : isHovered ? "text-[#111827]" : "text-[#111827]/40"}
                       `}>
                         <Icon size={20} />
                       </span>
 
                       {!collapsed && (
                         <span className={`text-sm font-medium truncate flex-1 text-left transition-colors duration-150
-                          ${isActive ? "text-[#f0f2f8]" : isHovered ? "text-[#f0f2f8]" : "text-slate-400"}
+                          ${isActive ? "text-[#111827]" : isHovered ? "text-[#111827]" : "text-[#111827]/40"}
                         `}>
                           {item.label}
                         </span>
@@ -222,7 +224,7 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
 
                       {collapsed && item.badge && (
                         <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full
-                          ${item.badgeCls.includes("red") ? "bg-red-500" : "bg-cyan-400"}
+                          ${item.badgeCls.includes("red") ? "bg-[#FF5C5C]" : "bg-[#D4AF37]"}
                         `} />
                       )}
                     </>
@@ -235,11 +237,11 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
       </nav>
 
       {/* ── Bottom: Settings + User ───────────────────── */}
-      <div className="shrink-0 border-t border-white/6">
+      <div className="shrink-0 border-t border-[#111827]/10">
         <button
           className={`
             w-full flex items-center gap-3
-            hover:bg-white/5 text-slate-500 cursor-pointer
+            hover:bg-white/65 backdrop-blur-md/5 text-[#111827]/50 cursor-pointer
             bg-transparent border-none transition-colors duration-150
             ${collapsed ? "justify-center py-3.5 px-0" : "px-5.5 py-3"}
           `}
@@ -253,23 +255,23 @@ export default function Sidebar({ collapsed, onCollapseToggle }) {
         <div
           className={`
             flex items-center gap-2.5
-            bg-white/2.5 border-t border-white/6
+            bg-white/65 backdrop-blur-md/2.5 border-t border-[#111827]/10
             ${collapsed ? "justify-center py-3.5 px-0" : "px-4 py-3.5"}
           `}
         >
-          <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm bg-linear-to-br from-cyan-400 to-blue-600 ring-2 ring-cyan-400/25">
+          <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[#111827] text-sm bg-[#D4AF37] ring-2 ring-[#D4AF37]/25">
             {getInitials(user?.name)}
           </div>
 
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-[#f0f2f8] m-0">{user?.name || "Admin User"}</p>
-                <p className="text-xs truncate text-slate-500 m-0">{user?.email || "admin@fleetiq.io"}</p>
+                <p className="text-sm font-semibold truncate text-[#111827] m-0">{user?.name || "Admin User"}</p>
+                <p className="text-xs truncate text-[#111827]/50 m-0">{user?.email || "admin@fleetiq.io"}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-slate-500 cursor-pointer border-none bg-transparent transition-colors"
+                className="shrink-0 p-1.5 rounded-lg hover:bg-white/65 backdrop-blur-md/10 text-[#111827]/50 cursor-pointer border-none bg-transparent transition-colors"
                 title="Logout"
               >
                 <MdLogout size={16} />

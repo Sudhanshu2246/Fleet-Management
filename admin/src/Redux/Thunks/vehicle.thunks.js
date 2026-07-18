@@ -6,7 +6,7 @@ export const createVehicle = createAsyncThunk(
   "vehicle/createVehicle",
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await api.post("/vehicles", formData);
+      const res = await api.post("/vehicles/register-vehicle", formData);
       return res.data;
     } catch (error) {
       return rejectWithValue(
@@ -21,7 +21,7 @@ export const getVehicles = createAsyncThunk(
   "vehicle/getVehicles",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get("/vehicles");
+      const res = await api.get("/vehicles/all-vehicles");
       return res.data;
     } catch (error) {
       return rejectWithValue(
@@ -56,6 +56,36 @@ export const deleteVehicle = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Failed to delete vehicle" }
+      );
+    }
+  }
+);
+
+// ================= GET ASSIGNED VEHICLES =================
+export const getAssignedVehicles = createAsyncThunk(
+  "vehicle/getAssignedVehicles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/vehicles/assignments");
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to fetch assigned vehicles" }
+      );
+    }
+  }
+);
+
+// ================= ASSIGN VEHICLE =================
+export const assignVehicle = createAsyncThunk(
+  "vehicle/assignVehicle",
+  async (assignmentData, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/vehicles/assign", assignmentData);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to assign vehicle" }
       );
     }
   }

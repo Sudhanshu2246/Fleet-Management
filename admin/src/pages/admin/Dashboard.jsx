@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { MdTrendingUp, MdTrendingDown } from "react-icons/md";
 import { RiSignalTowerFill } from "react-icons/ri";
+import Pagination from "../../shared/Pagination";
 
 /* ── Stat cards data ─────────────────────────────────────────────────────── */
 const STAT_CARDS = [
@@ -8,9 +10,9 @@ const STAT_CARDS = [
     value:  "3,842",
     sub:    "+12% from yesterday",
     trend:  "up",
-    color:  "#22d3ee",
-    bg:     "rgba(34,211,238,0.10)",
-    border: "rgba(34,211,238,0.25)",
+    color:  "#D4AF37",
+    bg:     "rgba(212,175,55,0.10)",
+    border: "rgba(212,175,55,0.25)",
     icon:   "📡",
   },
   {
@@ -48,9 +50,9 @@ const STAT_CARDS = [
     value:  "1.2M",
     sub:    "Time-series indexed",
     trend:  "up",
-    color:  "#10b981",
-    bg:     "rgba(16,185,129,0.10)",
-    border: "rgba(16,185,129,0.25)",
+    color:  "#D4AF37",
+    bg:     "rgba(212,175,55,0.10)",
+    border: "rgba(212,175,55,0.25)",
     icon:   "🗄️",
   },
   {
@@ -58,9 +60,9 @@ const STAT_CARDS = [
     value:  "48ms",
     sub:    "Target: < 2 seconds",
     trend:  "up",
-    color:  "#3b82f6",
-    bg:     "rgba(59,130,246,0.10)",
-    border: "rgba(59,130,246,0.25)",
+    color:  "#D4AF37",
+    bg:     "rgba(212,175,55,0.10)",
+    border: "rgba(212,175,55,0.25)",
     icon:   "⚡",
   },
 ];
@@ -78,41 +80,41 @@ const ACTIVITY = [
 ];
 
 const TYPE_COLOR = {
-  success: "#10b981",
+  success: "#D4AF37",
   danger:  "#ef4444",
   warning: "#f59e0b",
-  info:    "#22d3ee",
+  info:    "#D4AF37",
 };
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-[#060912] px-6 py-6">
+    <div className="min-h-screen bg-[#F0F4F8] px-6 py-6">
 
       {/* ── Page Heading ────────────────────────────────────────────────── */}
       <div className="mb-6">
         <nav className="flex items-center gap-1.5 mb-2">
-          <span className="text-xs font-semibold text-cyan-400 tracking-wide">Fleetiq</span>
-          <span className="text-xs text-white/20">/</span>
-          <span className="text-xs text-white/40">Live Dashboard</span>
+          <span className="text-xs font-semibold text-[#D4AF37] tracking-wide">Fleetiq</span>
+          <span className="text-xs text-[#111827]/20">/</span>
+          <span className="text-xs text-[#111827]/40">Live Dashboard</span>
         </nav>
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
+          <h1 className="text-2xl font-black text-[#111827] tracking-tight leading-tight">
             Live Operations Dashboard
           </h1>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Live badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/25">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#D4AF37]" />
               </span>
               LIVE
             </span>
-            <button className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white/60 border border-white/10 hover:border-white/20 hover:text-white/80 transition-all bg-white/5 hover:bg-white/10">
+            <button className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111827]/60 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/80 transition-all bg-[#111827]/5 hover:bg-[#111827]/10">
               Export Report
             </button>
-            <button className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-shadow">
+            <button className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/25 hover:shadow-[#D4AF37]/40 transition-shadow">
               + Add Device
             </button>
           </div>
@@ -145,9 +147,9 @@ export default function Dashboard() {
 function StatCard({ card }) {
   return (
     <div
-      className="group relative rounded-xl p-4 border border-white/[0.06] bg-[#0d1420] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
+      className="group relative rounded-xl p-4 border border-[#111827]/6 bg-white/65 backdrop-blur-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = card.border; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(12,13,13,0.06)"; }}
     >
       {/* Subtle top glow on hover */}
       <div
@@ -167,7 +169,7 @@ function StatCard({ card }) {
         {card.trend !== "neutral" && (
           <div
             className="flex items-center gap-0.5 text-[11px] font-bold"
-            style={{ color: card.trend === "up" ? "#10b981" : "#ef4444" }}
+            style={{ color: card.trend === "up" ? "#D4AF37" : "#ef4444" }}
           >
             {card.trend === "up"
               ? <MdTrendingUp size={13} />
@@ -176,10 +178,10 @@ function StatCard({ card }) {
         )}
       </div>
 
-      <div className="text-[22px] font-black text-white leading-none mb-1 tracking-tight">
+      <div className="text-[22px] font-black text-[#111827] leading-none mb-1 tracking-tight">
         {card.value}
       </div>
-      <div className="text-[11px] text-white/40 mb-1">{card.label}</div>
+      <div className="text-[11px] text-[#111827]/40 mb-1">{card.label}</div>
       <div className="text-[10px] font-semibold" style={{ color: card.color }}>
         {card.sub}
       </div>
@@ -190,18 +192,18 @@ function StatCard({ card }) {
 /* ── Map Placeholder ──────────────────────────────────────────────────────── */
 function MapPlaceholder() {
   return (
-    <div className="relative rounded-xl border border-white/[0.06] bg-[#0d1420] overflow-hidden" style={{ height: 360 }}>
+    <div className="relative rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden" style={{ height: 360 }}>
       {/* Card header */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-[#0d1420]/90 backdrop-blur-sm">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 border-b border-[#111827]/6 bg-white/65 backdrop-blur-md/90 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-bold text-white tracking-tight">Live Fleet Map</span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="animate-pulse w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+          <span className="text-[13px] font-bold text-[#111827] tracking-tight">Live Fleet Map</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
+            <span className="animate-pulse w-1.5 h-1.5 rounded-full bg-[#D4AF37] inline-block" />
             LIVE
           </span>
         </div>
         <div className="flex gap-2">
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
             3,842 active
           </span>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
@@ -215,7 +217,7 @@ function MapPlaceholder() {
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(34,211,238,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.05) 1px, transparent 1px)",
+            "linear-gradient(rgba(212,175,55,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.05) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
@@ -226,7 +228,7 @@ function MapPlaceholder() {
           width: 300,
           height: 300,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 65%)",
           top: "50%",
           left: "50%",
           transform: "translate(-50%,-50%)",
@@ -238,7 +240,7 @@ function MapPlaceholder() {
           width: 200,
           height: 200,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 65%)",
           top: "30%",
           left: "30%",
         }}
@@ -248,12 +250,12 @@ function MapPlaceholder() {
       <div className="relative z-[1] flex flex-col items-center justify-center h-full gap-3 mt-8">
         <div className="text-4xl">🗺️</div>
         <div className="text-center">
-          <div className="text-sm font-bold text-white mb-1">Integrate Mapbox / Google Maps</div>
-          <div className="text-[11px] text-white/40">
+          <div className="text-sm font-bold text-[#111827] mb-1">Integrate Mapbox / Google Maps</div>
+          <div className="text-[11px] text-[#111827]/40">
             WebSocket active · 3,842 devices tracked · &lt;2s latency
           </div>
         </div>
-        <button className="px-4 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-shadow">
+        <button className="px-4 py-2 rounded-lg text-xs font-bold bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/25 hover:shadow-[#D4AF37]/40 transition-shadow">
           Initialize Map View
         </button>
       </div>
@@ -264,12 +266,12 @@ function MapPlaceholder() {
 /* ── Activity Feed ────────────────────────────────────────────────────────── */
 function ActivityFeed() {
   return (
-    <div className="flex flex-col rounded-xl border border-white/[0.06] bg-[#0d1420] overflow-hidden">
+    <div className="flex flex-col rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <span className="text-[13px] font-bold text-white tracking-tight">Recent Activity</span>
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span className="animate-pulse w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#111827]/6 shrink-0">
+        <span className="text-[13px] font-bold text-[#111827] tracking-tight">Recent Activity</span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
+          <span className="animate-pulse w-1.5 h-1.5 rounded-full bg-[#D4AF37] inline-block" />
           LIVE
         </span>
       </div>
@@ -281,15 +283,15 @@ function ActivityFeed() {
           return (
             <div
               key={i}
-              className="flex items-start gap-2.5 px-4 py-2.5 border-b border-white/[0.03] cursor-pointer transition-colors hover:bg-white/[0.04]"
+              className="flex items-start gap-2.5 px-4 py-2.5 border-b border-[#111827]/3 cursor-pointer transition-colors hover:bg-[#111827]/4"
             >
               <div
                 className="w-2 h-2 rounded-full shrink-0 mt-1"
                 style={{ background: color, boxShadow: `0 0 6px ${color}60` }}
               />
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] text-white/70 leading-snug">{item.label}</div>
-                <div className="text-[10px] text-white/30 mt-0.5">{item.time}</div>
+                <div className="text-[11px] text-[#111827]/70 leading-snug">{item.label}</div>
+                <div className="text-[10px] text-[#111827]/30 mt-0.5">{item.time}</div>
               </div>
             </div>
           );
@@ -297,8 +299,8 @@ function ActivityFeed() {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2.5 border-t border-white/[0.06] shrink-0">
-        <button className="w-full text-center text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 py-1 rounded-lg hover:bg-cyan-500/5 transition-colors">
+      <div className="px-4 py-2.5 border-t border-[#111827]/6 shrink-0">
+        <button className="w-full text-center text-[11px] font-semibold text-[#D4AF37] hover:text-[#D4AF37] py-1 rounded-lg hover:bg-[#D4AF37]/5 transition-colors">
           View All Alerts →
         </button>
       </div>
@@ -316,17 +318,25 @@ const DEVICES = [
 ];
 
 const STATUS_CLASSES = {
-  active:  "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20",
+  active:  "bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20",
   idle:    "bg-amber-500/10 text-amber-400 border border-amber-500/20",
   offline: "bg-red-500/10 text-red-400 border border-red-500/20",
 };
 
 function DeviceTablePreview() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3; // Keep small for preview
+
+  const paginatedData = DEVICES.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0d1420] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-        <span className="text-[13px] font-bold text-white tracking-tight">Active Devices</span>
-        <button className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white/50 border border-white/10 hover:border-white/20 hover:text-white/70 bg-white/5 hover:bg-white/10 transition-all">
+    <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#111827]/6">
+        <span className="text-[13px] font-bold text-[#111827] tracking-tight">Active Devices</span>
+        <button className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/70 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all">
           View All
         </button>
       </div>
@@ -334,11 +344,11 @@ function DeviceTablePreview() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-white/[0.05]">
+            <tr className="border-b border-[#111827]/5">
               {["Device ID", "Driver", "Speed", "Battery", "Status"].map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-2.5 text-left text-[10px] font-semibold text-white/30 uppercase tracking-wider whitespace-nowrap"
+                  className="px-4 py-2.5 text-left text-[10px] font-semibold text-[#111827]/30 uppercase tracking-wider whitespace-nowrap"
                 >
                   {h}
                 </th>
@@ -346,20 +356,20 @@ function DeviceTablePreview() {
             </tr>
           </thead>
           <tbody>
-            {DEVICES.map((d, i) => (
+            {paginatedData.map((d, i) => (
               <tr
                 key={d.id}
-                className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                className="border-b border-[#111827]/4 last:border-0 hover:bg-[#111827]/4 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3">
-                  <span className="text-[12px] font-bold text-cyan-400 font-mono">{d.id}</span>
+                  <span className="text-[12px] font-bold text-[#D4AF37] font-mono">{d.id}</span>
                 </td>
-                <td className="px-4 py-3 text-[12px] text-white/60">{d.driver}</td>
-                <td className="px-4 py-3 text-[12px] text-white/60 font-mono">{d.speed}</td>
+                <td className="px-4 py-3 text-[12px] text-[#111827]/60">{d.driver}</td>
+                <td className="px-4 py-3 text-[12px] text-[#111827]/60 font-mono">{d.speed}</td>
                 <td className="px-4 py-3">
                   <span
                     className="text-[12px] font-bold font-mono"
-                    style={{ color: parseInt(d.battery) < 20 ? "#ef4444" : "rgba(255,255,255,0.6)" }}
+                    style={{ color: parseInt(d.battery) < 20 ? "#ef4444" : "rgba(12,13,13,0.6)" }}
                   >
                     {d.battery}
                   </span>
@@ -374,6 +384,12 @@ function DeviceTablePreview() {
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={DEVICES.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
@@ -389,10 +405,10 @@ const SERVICES = [
 
 function SystemHealth() {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0d1420] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-        <span className="text-[13px] font-bold text-white tracking-tight">System Health</span>
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+    <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#111827]/6">
+        <span className="text-[13px] font-bold text-[#111827] tracking-tight">System Health</span>
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
           All Healthy
         </span>
       </div>
@@ -401,14 +417,14 @@ function SystemHealth() {
         {SERVICES.map((s) => (
           <div
             key={s.name}
-            className="flex items-center gap-2.5 px-4 py-2.5 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-colors"
+            className="flex items-center gap-2.5 px-4 py-2.5 border-b border-[#111827]/4 last:border-0 hover:bg-[#111827]/3 transition-colors"
           >
-            <RiSignalTowerFill size={13} className="text-emerald-400 shrink-0" />
+            <RiSignalTowerFill size={13} className="text-[#D4AF37] shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-medium text-white/80 truncate">{s.name}</div>
-              <div className="text-[10px] text-white/30 mt-0.5">Uptime {s.uptime}</div>
+              <div className="text-[11px] font-medium text-[#111827]/80 truncate">{s.name}</div>
+              <div className="text-[10px] text-[#111827]/30 mt-0.5">Uptime {s.uptime}</div>
             </div>
-            <span className="text-[11px] font-bold text-cyan-400 font-mono shrink-0">{s.latency}</span>
+            <span className="text-[11px] font-bold text-[#D4AF37] font-mono shrink-0">{s.latency}</span>
           </div>
         ))}
       </div>

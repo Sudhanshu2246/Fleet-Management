@@ -6,6 +6,9 @@ import Register from "../pages/auth/Registration";
 import Vehicles from "../pages/admin/Vehicles";
 import Home from "../pages/Landing/Home";
 import DriverManagement from "../pages/admin/DriverManagement";
+import AssignVehicle from "../pages/admin/AssignVehicle";
+
+import Alerts from "../pages/admin/Alerts";
 
 /**
  * App Router
@@ -31,7 +34,7 @@ export const appRouter = createBrowserRouter([
         path: "fleet-map",
         element: <PlaceholderPage title="Live Fleet Map" />,
       },
-      { path: "alerts", element: <PlaceholderPage title="Alerts Dashboard" /> },
+      { path: "alerts", element: <Alerts /> },
       {
         path: "trip-history",
         element: <PlaceholderPage title="Trip History & Replay" />,
@@ -42,6 +45,10 @@ export const appRouter = createBrowserRouter([
       },
       { path: "vehicles", element: <Vehicles /> },
       { path: "drivers", element: <DriverManagement /> },
+      {
+        path: "assign-vehicle",
+        element: <AssignVehicle />,
+      },
       {
         path: "reports",
         element: <PlaceholderPage title="Reports & Analytics" />,
@@ -62,27 +69,27 @@ export const appRouter = createBrowserRouter([
 function PlaceholderPage({ title }) {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-[#060912] px-6 py-6">
+    <div className="min-h-screen bg-[#EDECF1] px-6 py-6">
       {/* Header */}
       <div className="mb-6">
         <nav className="flex items-center gap-1.5 mb-2">
-          <span className="text-xs font-semibold text-cyan-400 tracking-wide">
+          <span className="text-xs font-semibold text-[#19C853] tracking-wide">
             Fleetiq
           </span>
-          <span className="text-xs text-white/20">/</span>
-          <span className="text-xs text-white/40">{title}</span>
+          <span className="text-xs text-[#0C0D0D]/20">/</span>
+          <span className="text-xs text-[#0C0D0D]/40">{title}</span>
         </nav>
 
-        <h1 className="text-2xl font-black text-white tracking-tight">
+        <h1 className="text-2xl font-black text-[#0C0D0D] tracking-tight">
           {title}
         </h1>
       </div>
 
       {/* Placeholder Card */}
-      <div className="relative rounded-xl border border-white/[0.06] bg-[#0d1420] overflow-hidden">
+      <div className="relative rounded-xl border border-[#0C0D0D]/6 bg-white overflow-hidden">
         {/* Glow Effect */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-cyan-500/10 blur-3xl rounded-full" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-[#19C853]/10 blur-3xl rounded-full" />
         </div>
 
         {/* Content */}
@@ -91,15 +98,15 @@ function PlaceholderPage({ title }) {
           <div className="text-5xl">🚧</div>
 
           {/* Title */}
-          <h2 className="text-lg font-bold text-white tracking-tight">
+          <h2 className="text-lg font-bold text-[#0C0D0D] tracking-tight">
             {title} Module
           </h2>
 
           {/* Description */}
-          <p className="text-sm text-white/40 max-w-md leading-relaxed">
+          <p className="text-sm text-[#0C0D0D]/40 max-w-md leading-relaxed">
             This section is currently under development. Once completed, it will
             provide full control and insights for{" "}
-            <span className="text-cyan-400 font-semibold">
+            <span className="text-[#19C853] font-semibold">
               {title.toLowerCase()}
             </span>{" "}
             management inside your fleet system.
@@ -113,7 +120,7 @@ function PlaceholderPage({ title }) {
           {/* CTA */}
           <button
             onClick={() => navigate("/dashboard")}
-            className="mt-4 px-5 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all"
+            className="mt-4 px-5 py-2 rounded-lg text-xs font-bold bg-[#19C853] text-white shadow-lg shadow-[#19C853]/25 hover:shadow-[#19C853]/40 transition-all"
           >
             Back to Dashboard
           </button>

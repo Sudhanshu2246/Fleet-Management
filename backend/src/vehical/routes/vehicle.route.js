@@ -6,7 +6,8 @@ const {
   getVehicleById,
   updateVehicle,
   deleteVehicle,
-  assignVehicleToDriver
+  assignVehicleToDriver,
+  getAssignedVehicles
 } = require("../controllers/vehicle.controller");
 const { protect } = require("../../middlewares/auth.middleware");
 const { authorizeRoles } = require("../../middlewares/role.middleware");
@@ -14,6 +15,8 @@ const upload = require("../../middlewares/upload.middleware");
 
 // All routes are protected
 router.use(protect);
+
+router.get("/assignments", authorizeRoles("super_admin", "company_admin"), getAssignedVehicles);
 
 router.get("/all-vehicles", getVehicles);
 

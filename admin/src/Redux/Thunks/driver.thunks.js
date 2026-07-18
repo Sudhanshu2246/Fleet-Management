@@ -21,7 +21,7 @@ export const getDrivers = createAsyncThunk(
   "driver/getDrivers",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get("/drivers");
+      const res = await api.get("/drivers/all-drivers");
       return res.data;
     } catch (error) {
       return rejectWithValue(
@@ -56,6 +56,21 @@ export const updateDriverStatus = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Failed to update driver status" }
+      );
+    }
+  }
+);
+
+// ================= GET DRIVER BY ID =================
+export const getDriverById = createAsyncThunk(
+  "driver/getDriverById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.get(`/drivers/${id}`);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to fetch driver details" }
       );
     }
   }

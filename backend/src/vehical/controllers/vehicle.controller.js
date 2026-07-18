@@ -458,3 +458,37 @@ exports.assignVehicleToDriver = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all assigned vehicles (assignments)
+// @route   GET /api/v1/vehicles/assignments
+// @access  Private
+exports.getAssignedVehicles = async (req, res) => {
+  try {
+    const assignments = await VehicleAssignment.findAll({
+      where: { organizationId: req.user.organizationId },
+      include: [
+        {
+          model: require("../../index/index.model").Vehicle,
+          as: "Vehicle", // check relationship name if needed. In index.model.js, Vehicle.hasMany(VehicleAssignment, { foreignKey: "vehicleId" }); VehicleAssignment.belongsTo(Vehicle, { foreignKey: "vehicleId" })
+          attributes: ["id", "vehicleNumber", "type", "name"]
+        },
+        {
+          model: require("../../index/index.model").User,
+          as: "User", // VehicleAssignment.belongsTo(User, { foreignKey: "driverId" })
+          attributes: ["id", "firstName", "lastName", "phone"]
+        }
+      ],
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: assignments,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};

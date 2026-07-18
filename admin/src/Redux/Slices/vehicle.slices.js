@@ -4,10 +4,13 @@ import {
   getVehicles,
   updateVehicle,
   deleteVehicle,
+  getAssignedVehicles,
+  assignVehicle,
 } from "../Thunks/vehicle.thunks";
 
 const initialState = {
   vehicles: [],
+  assignments: [],
   loading: false,
   error: null,
   success: false,
@@ -51,6 +54,36 @@ const vehicleSlice = createSlice({
       .addCase(getVehicles.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Failed to fetch vehicles";
+      })
+
+      // ================= GET ASSIGNED VEHICLES =================
+      .addCase(getAssignedVehicles.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAssignedVehicles.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignments = action.payload.data;
+      })
+      .addCase(getAssignedVehicles.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to fetch assigned vehicles";
+      })
+
+      // ================= ASSIGN VEHICLE =================
+      .addCase(assignVehicle.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(assignVehicle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        // Optionally prepend to assignments
+        if (action.payload?.data) {
+          state.assignments.unshift(action.payload.data);
+        }
+      })
+      .addCase(assignVehicle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to assign vehicle";
       })
 
       // ================= UPDATE =================

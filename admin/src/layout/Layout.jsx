@@ -27,7 +27,7 @@ export default function Layout() {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "var(--color-bg-base)",
+        background: "#F0F4F8",
       }}
     >
       {/* ── Sidebar (fixed position, outside flow) ──────────────────────── */}
@@ -59,13 +59,12 @@ export default function Layout() {
 
       {/* ── Main column ─────────────────────────────────────────────────── */}
       <div
-        className=""
+        className="main-content"
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-        //   minWidth: 0,
-          marginLeft: sidebarW,
+          minWidth: 0,
           transition: "margin-left 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
@@ -80,7 +79,13 @@ export default function Layout() {
 
       {/* ── Responsive sidebar styles ────────────────────────────────────── */}
       <style>{`
+        .main-content {
+          margin-left: ${sidebarW}px;
+        }
         @media (max-width: 767px) {
+          .main-content {
+            margin-left: 0 !important;
+          }
           .sidebar-wrapper {
             position: fixed !important;
             top: 0; left: 0; height: 100%;

@@ -1,14 +1,16 @@
 import { createBrowserRouter, useNavigate } from "react-router-dom";
 import Layout from "../layout/Layout";
 import Dashboard from "../pages/admin/Dashboard";
-import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Registration";
 import Vehicles from "../pages/admin/Vehicles";
 import Home from "../pages/Landing/Home";
 import DriverManagement from "../pages/admin/DriverManagement";
 import AssignVehicle from "../pages/admin/AssignVehicle";
+import MyProfile from "../pages/auth/MyProfile";
+import Trips from "../pages/admin/Trips";
 
 import Alerts from "../pages/admin/Alerts";
+import LiveFleetMap from "../pages/admin/LiveFleetMap";
 
 /**
  * App Router
@@ -20,7 +22,6 @@ import Alerts from "../pages/admin/Alerts";
 export const appRouter = createBrowserRouter([
   /* ── Public routes ─────────────────────────────── */
   { path: "/", element: <Home /> }, // ✅ First page
-  { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
 
   /* ── Admin routes (with Layout) ───────────────── */
@@ -29,10 +30,11 @@ export const appRouter = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Dashboard /> }, // /dashboard
+      { path: "my-profile", element: <MyProfile /> },
 
       {
         path: "fleet-map",
-        element: <PlaceholderPage title="Live Fleet Map" />,
+        element: <LiveFleetMap />,
       },
       { path: "alerts", element: <Alerts /> },
       {
@@ -43,6 +45,7 @@ export const appRouter = createBrowserRouter([
         path: "geofence",
         element: <PlaceholderPage title="Geofence Management" />,
       },
+      { path: "trips", element: <Trips /> },
       { path: "vehicles", element: <Vehicles /> },
       { path: "drivers", element: <DriverManagement /> },
       {

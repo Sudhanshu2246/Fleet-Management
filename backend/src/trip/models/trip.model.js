@@ -20,11 +20,11 @@ const Trip = sequelize.define(
     },
     vehicleId: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     driverId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     coPilotName: {
       type: DataTypes.STRING,
@@ -59,7 +59,7 @@ const Trip = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM("scheduled", "ongoing", "completed", "cancelled"),
+      type: DataTypes.ENUM("scheduled", "assigned", "ongoing", "completed", "cancelled"),
       defaultValue: "scheduled",
     },
     distanceTravelled: {
@@ -87,6 +87,22 @@ const Trip = sequelize.define(
       allowNull: true,
     },
     path: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    tripType: {
+      type: DataTypes.ENUM("one-way", "round-trip", "multi-city"),
+      defaultValue: "one-way",
+    },
+    vehicleTypeRequired: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    returnDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    multiCityLegs: {
       type: DataTypes.JSON,
       allowNull: true,
     },

@@ -90,3 +90,33 @@ export const assignVehicle = createAsyncThunk(
     }
   }
 );
+
+// ================= DELETE ASSIGNMENT =================
+export const deleteAssignment = createAsyncThunk(
+  "vehicle/deleteAssignment",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.delete(`/vehicles/assignments/${id}`);
+      return { id, message: res.data.message };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to delete assignment" }
+      );
+    }
+  }
+);
+
+// ================= UPDATE ASSIGNMENT =================
+export const updateAssignment = createAsyncThunk(
+  "vehicle/updateAssignment",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await api.put(`/vehicles/assignments/${id}`, data);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to update assignment" }
+      );
+    }
+  }
+);

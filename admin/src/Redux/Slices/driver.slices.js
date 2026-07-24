@@ -4,6 +4,8 @@ import {
   getDrivers,
   assignVehicle,
   updateDriverStatus,
+  updateDriver,
+  deleteDriver,
 } from "../Thunks/driver.thunks";
 
 const initialState = {
@@ -48,13 +50,31 @@ const driverSlice = createSlice({
         state.drivers = action.payload.data;
       })
 
+      // ================= UPDATE DRIVER =================
+      .addCase(updateDriver.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateDriver.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        const index = state.drivers.findIndex((d) => d.id === action.payload.data.id || d._id === action.payload.data.id);
+        if (index !== -1) {
+          state.drivers[index] = action.payload.data;
+        }
+      })
+      .addCase(updateDriver.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to update driver";
+      })
+
       // ================= UPDATE STATUS =================
       .addCase(updateDriverStatus.fulfilled, (state, action) => {
         const index = state.drivers.findIndex(
-          (d) => d._id === action.payload.data._id
+          (d) => d.id === action.payload.data.userId || d._id === action.payload.data.userId
         );
         if (index !== -1) {
-          state.drivers[index] = action.payload.data;
+          state.drivers[index].Driver = action.payload.data;
+          state.success = true;
         }
       })
 
@@ -63,11 +83,25 @@ const driverSlice = createSlice({
         // Since assignVehicle updates both driver and vehicle, 
         // we update the driver in our local state
         const index = state.drivers.findIndex(
-          (d) => d._id === action.payload.data.driver._id
+          (d) => d.id === action.payload.data.driver.id || d._id === action.payload.data.driver.id
         );
         if (index !== -1) {
           state.drivers[index] = action.payload.data.driver;
         }
+      })
+      
+      // ================= DELETE DRIVER =================
+      .addCase(deleteDriver.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteDriver.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.drivers = state.drivers.filter(d => d.id !== action.payload.id && d._id !== action.payload.id);
+      })
+      .addCase(deleteDriver.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to delete driver";
       });
   },
 });

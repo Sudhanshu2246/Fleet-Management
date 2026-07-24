@@ -1,5 +1,6 @@
 const { Trip, Vehicle, User } = require("../../index/index.model");
 const { sequelize } = require("../../config/db");
+const { generateTripId } = require("../../utils/generateTripId");
 
 // ─── Start New Trip ──────────────────────
 exports.startTrip = async (req, res) => {
@@ -174,7 +175,7 @@ exports.getTripDetails = async (req, res) => {
       include: [
         {
           model: Vehicle,
-          attributes: ["vehicleId", "name", "type"]
+          attributes: ["id", "name", "type", "vehicleNumber"]
         },
         {
           model: User,
@@ -192,6 +193,225 @@ exports.getTripDetails = async (req, res) => {
       trip,
     });
   } catch (error) {
+    console.error("Get Trip Details Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Admin Create Trip (Scheduled Booking) ────────
+exports.createAdminTrip = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const {
+      tripType,
+      vehicleTypeRequired,
+      sourceAddress,
+      sourceLat,
+      sourceLng,
+      destAddress,
+      destLat,
+      destLng,
+      startTime,
+      returnDate,
+      multiCityLegs
+    } = req.body;
+
+    const organizationId = req.user.organizationId || req.user.organization;
+
+    const tripIdString = await generateTripId(organizationId, vehicleTypeRequired, tripType, transaction);
+
+    const newTrip = await Trip.create({
+      tripId: tripIdString,
+      organizationId: organizationId,
+      vehicleId: null,
+      driverId: null,
+      coPilotName: null,
+      coPilotPhone: null,
+      sourceAddress: sourceAddress || "",
+      sourceLat: sourceLat || null,
+      sourceLng: sourceLng || null,
+      destAddress: destAddress || "",
+      destLat: destLat || null,
+      destLng: destLng || null,
+      status: "scheduled",
+      startTime: startTime ? new Date(startTime) : new Date(),
+      tripType: tripType || "one-way",
+      vehicleTypeRequired: vehicleTypeRequired || null,
+      returnDate: returnDate ? new Date(returnDate) : null,
+      multiCityLegs: multiCityLegs || null
+    }, { transaction });
+
+    await transaction.commit();
+
+    // Fetch complete trip with associations
+    const completeTrip = await Trip.findOne({
+      where: { id: newTrip.id },
+      include: [
+        { model: Vehicle, attributes: ["id", "name", "type", "vehicleNumber"] },
+        { model: User, attributes: ["firstName", "lastName", "phone"] }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Trip booking created successfully",
+      trip: completeTrip,
+    });
+  } catch (error) {
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
+    console.error("Admin Create Trip Error:", error);
+    res.status(500).json({ success: false, message: "Failed to create trip booking", error: error.message });
+  }
+};
+
+// ─── Get All Trips (Admin) ──────────────
+exports.getAllTrips = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const offset = (page - 1) * limit;
+
+    const organizationId = req.user.organizationId || req.user.organization;
+
+    const { count, rows: trips } = await Trip.findAndCountAll({
+      where: { organizationId },
+      include: [
+        {
+          model: Vehicle,
+          attributes: ["id", "name", "type", "vehicleNumber"]
+        },
+        {
+          model: User,
+          attributes: ["firstName", "lastName", "phone"]
+        }
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset
+    });
+
+    res.status(200).json({
+      success: true,
+      trips,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      totalTrips: count
+    });
+  } catch (error) {
+    console.error("Get All Trips Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch trips" });
+  }
+};
+
+// ─── Update Trip Status ───────────────────
+exports.updateTripStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // 'scheduled', 'assigned', 'ongoing', 'completed', 'cancelled'
+
+    if (!["scheduled", "assigned", "ongoing", "completed", "cancelled"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status value" });
+    }
+
+    const trip = await Trip.findByPk(id);
+    if (!trip) {
+      return res.status(404).json({ success: false, message: "Trip not found" });
+    }
+
+    trip.status = status;
+    if (status === "completed") {
+      trip.endTime = new Date();
+    }
+    await trip.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Trip status updated successfully",
+      trip
+    });
+  } catch (error) {
+    console.error("Update Trip Status Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update trip status" });
+  }
+};
+
+// ─── Delete Trip ─────────────────────────
+exports.deleteTrip = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const trip = await Trip.findByPk(id);
+    if (!trip) {
+      return res.status(404).json({ success: false, message: "Trip not found" });
+    }
+
+    await trip.destroy();
+
+    res.status(200).json({
+      success: true,
+      message: "Trip deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete Trip Error:", error);
+    res.status(500).json({ success: false, message: "Failed to delete trip" });
+  }
+};
+
+// ─── Update Trip Details ─────────────────
+exports.updateTripDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      tripType,
+      vehicleTypeRequired,
+      sourceAddress,
+      sourceLat,
+      sourceLng,
+      destAddress,
+      destLat,
+      destLng,
+      startTime,
+      returnDate,
+      multiCityLegs
+    } = req.body;
+
+    const trip = await Trip.findByPk(id);
+    if (!trip) {
+      return res.status(404).json({ success: false, message: "Trip not found" });
+    }
+
+    if (tripType !== undefined) trip.tripType = tripType;
+    if (vehicleTypeRequired !== undefined) trip.vehicleTypeRequired = vehicleTypeRequired;
+    if (sourceAddress !== undefined) trip.sourceAddress = sourceAddress;
+    if (sourceLat !== undefined) trip.sourceLat = sourceLat;
+    if (sourceLng !== undefined) trip.sourceLng = sourceLng;
+    if (destAddress !== undefined) trip.destAddress = destAddress;
+    if (destLat !== undefined) trip.destLat = destLat;
+    if (destLng !== undefined) trip.destLng = destLng;
+    if (startTime !== undefined) trip.startTime = new Date(startTime);
+    if (returnDate !== undefined) trip.returnDate = returnDate ? new Date(returnDate) : null;
+    if (multiCityLegs !== undefined) trip.multiCityLegs = multiCityLegs;
+
+    await trip.save();
+
+    // Fetch complete trip with associations
+    const completeTrip = await Trip.findOne({
+      where: { id: trip.id },
+      include: [
+        { model: require("../../index/index.model").Vehicle, attributes: ["id", "name", "type", "vehicleNumber"] },
+        { model: require("../../index/index.model").User, attributes: ["firstName", "lastName", "phone"] }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Trip details updated successfully",
+      trip: completeTrip
+    });
+  } catch (error) {
+    console.error("Update Trip Details Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update trip details" });
   }
 };

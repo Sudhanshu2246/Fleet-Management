@@ -142,7 +142,7 @@ export default function Alerts() {
       </div>
 
       {/* ── Stat Cards ────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white/65 backdrop-blur-md border border-[#111827]/10 rounded-xl p-5 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-[#111827]/60 mb-1">Total Alerts</p>

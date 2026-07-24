@@ -19,6 +19,7 @@ import {
   MdPerson,
   MdClose,
   MdMenu,
+  MdGpsFixed,
 } from "react-icons/md";
 import { RiSignalTowerFill } from "react-icons/ri";
 
@@ -121,7 +122,7 @@ export default function Header({ onMenuToggle, collapsed }) {
 
   const handleLogout = async () => {
     await dispatch(logout());
-    navigate("/login");
+    navigate("/");
   };
 
   // ── Helper: Get initials ───────────────────────
@@ -143,60 +144,26 @@ export default function Header({ onMenuToggle, collapsed }) {
 
   return (
     <header className="sticky top-0 z-40 flex flex-col shrink-0 bg-white/65 backdrop-blur-xl border-b border-[#0C0D0D]/10 border-b border-[#111827]/10 shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
-      <div className="flex items-center justify-around h-16 px-4 gap-3">
-        {/* Hamburger Menu (Mobile Only) */}
-        <button
-          onClick={onMenuToggle}
-          className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-[#111827]/60 hover:bg-white/65 backdrop-blur-md/5 transition-colors bg-transparent border-none cursor-pointer shrink-0"
-        >
-          <MdMenu size={24} />
-        </button>
-
-        {/* ── Search Bar ─────────────────────────────────── */}
-        <div ref={searchRef} className="relative flex-1 max-w-sm">
-          <div
-            onClick={() => setSearchOpen(true)}
-            className={`
-              flex items-center gap-2.5 rounded-lg px-3 h-9 cursor-text
-              transition-all duration-200 bg-white/65 backdrop-blur-md/5
-              ${searchOpen
-                ? "border border-[#D4AF37]/50"
-                : "border border-white/[0.07]"
-              }
-            `}
+      <div className="flex items-center justify-between h-16 px-4 gap-3">
+        {/* Hamburger Menu & Logo (Mobile Only) */}
+        <div className="md:hidden flex items-center gap-3">
+          <button
+            onClick={onMenuToggle}
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-[#111827]/60 hover:bg-white/65 backdrop-blur-md/5 transition-colors bg-transparent border-none cursor-pointer shrink-0"
           >
-            <MdSearch size={17} className="text-[#111827]/60 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search vehicles, drivers, trips..."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="flex-1 text-sm bg-transparent outline-none border-none text-[#111827] placeholder:text-[#111827]/60 caret-[#D4AF37]"
-            />
-            {searchVal && (
-              <button
-                onClick={() => setSearchVal("")}
-                className="shrink-0 text-[#111827]/60 bg-transparent border-none cursor-pointer"
-              >
-                <MdClose size={15} />
-              </button>
-            )}
-          </div>
-
-          {/* Search Dropdown */}
-          {searchOpen && searchVal && (
-            <div className="absolute top-11 left-0 w-full rounded-xl overflow-hidden py-1 bg-white/65 backdrop-blur-md border border-[#111827]/8 shadow-[0_16px_48px_rgba(0,0,0,0.15)] z-50">
-              {["Vehicle VH-4821", "Driver John Smith", "Trip #TR-9920"].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/65 backdrop-blur-xl border-b border-[#0C0D0D]/10/5 transition-colors"
-                >
-                  <MdSearch size={14} className="text-[#111827]/60" />
-                  <span className="text-sm text-[#111827]/40">{item}</span>
-                </div>
-              ))}
+            <MdMenu size={24} />
+          </button>
+          
+          <div className="flex items-center">
+            <div className="flex items-center justify-center shrink-0 w-8 h-8 rounded-lg bg-[#D4AF37] shadow-[0_2px_8px_rgba(212,175,55,0.35)]">
+              <MdGpsFixed className="text-[#111827]" size={18} />
             </div>
-          )}
+            <div className="ml-2">
+              <p className="text-[14px] font-bold tracking-tight leading-none text-[#111827] m-0">
+                Fleet<span className="text-[#D4AF37]">IQ</span>
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* ── Live Stats Strip ───────────────────────────── */}
@@ -224,6 +191,7 @@ export default function Header({ onMenuToggle, collapsed }) {
 
           {/* Refresh */}
           <button
+            onClick={() => window.location.reload()}
             className="flex items-center justify-center w-9 h-9 rounded-lg text-[#111827]/40 hover:bg-white/65 backdrop-blur-md/5 transition-colors bg-transparent border-none cursor-pointer"
             title="Refresh data"
           >
@@ -330,60 +298,18 @@ export default function Header({ onMenuToggle, collapsed }) {
             )}
           </div>
 
-          {/* ── Profile Dropdown ──────────────────────── */}
-          <div ref={profileRef} className="relative">
-            <button
-              onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+          {/* ── Profile Dropdown Removed ──────────────────────── */}
+          <div className="relative">
+            <div
               className={`
                 flex items-center gap-2.5 h-9 px-2 rounded-lg
-                transition-all cursor-pointer bg-transparent
-                ${profileOpen
-                  ? "border border-[#D4AF37]/30 bg-[#D4AF37]/8"
-                  : "border border-transparent hover:bg-white/65 backdrop-blur-md/5"
-                }
+                transition-all bg-transparent border border-transparent
               `}
             >
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-[#111827] font-bold text-xs shrink-0 bg-[#D4AF37] ring-2 ring-[#D4AF37]/25">
                 {getInitials(user?.name)}
               </div>
-              <div className="hidden md:block text-left">
-                <p className="text-xs font-semibold leading-none text-[#111827] m-0">{user?.name || "Admin User"}</p>
-                <p className="text-xs mt-0.5 text-[#111827]/60 m-0">{roleLabel(user?.role)}</p>
-              </div>
-              <MdKeyboardArrowDown
-                size={16}
-                className={`text-[#111827]/60 transition-transform duration-200 ${profileOpen ? "rotate-180" : "rotate-0"}`}
-              />
-            </button>
-
-            {/* Profile Menu */}
-            {profileOpen && (
-              <div className="absolute right-0 top-12 w-50 rounded-xl py-1 overflow-hidden bg-white/65 backdrop-blur-md border border-[#111827]/8 shadow-[0_16px_48px_rgba(0,0,0,0.15)] z-100">
-                {[
-                  { label: "My Profile", icon: MdPerson },
-                  { label: "Settings",   icon: MdSettings },
-                ].map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/65 backdrop-blur-xl border-b border-[#0C0D0D]/10/5 text-left bg-transparent border-none cursor-pointer"
-                    >
-                      <ItemIcon size={16} className="text-[#111827]/40" />
-                      <span className="text-sm text-[#111827]/40">{item.label}</span>
-                    </button>
-                  );
-                })}
-                <div className="h-px bg-white/65 backdrop-blur-xl border-b border-[#0C0D0D]/10/6 my-1" />
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/65 backdrop-blur-xl border-b border-[#0C0D0D]/10/5 text-left bg-transparent border-none cursor-pointer"
-                >
-                  <MdLogout size={16} className="text-[#FF5C5C]" />
-                  <span className="text-sm text-[#FF5C5C]">Logout</span>
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

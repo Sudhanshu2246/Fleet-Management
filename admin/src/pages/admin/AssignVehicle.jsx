@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getAssignedVehicles, assignVehicle } from "../../Redux/Thunks/vehicle.thunks";
+import { getAssignedVehicles, assignVehicle, getVehicles, deleteAssignment } from "../../Redux/Thunks/vehicle.thunks";
 import { getDrivers } from "../../Redux/Thunks/driver.thunks";
+import { getAllTrips } from "../../Redux/Thunks/trip.thunks";
 import {
   MdAdd,
   MdSearch,
@@ -18,17 +19,25 @@ import {
   MdAssignment,
   MdVisibility,
   MdEdit,
+  MdRefresh,
+  MdChevronLeft,
+  MdChevronRight,
 } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Pagination from "../../shared/Pagination";
+import CustomDropdown from "../../shared/CustomDropdown";
 import AddAssignmentModal from "../../modals/AddAssignmentModal";
 import AssignmentDetailsModal from "../../modals/AssignmentDetailsModal";
+import DeleteAssignmentModal from "../../modals/DeleteAssignmentModal";
 
 const STATUS_MAP = {
   active:    { label: "Active",    badgeCls: "bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20" },
+  ongoing:   { label: "Ongoing",   badgeCls: "bg-blue-500/10 text-blue-500 border border-blue-500/20" },
   completed: { label: "Completed", badgeCls: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" },
   scheduled: { label: "Scheduled", badgeCls: "bg-blue-500/10 text-blue-500 border border-blue-500/20" },
+  assigned:  { label: "Assigned",  badgeCls: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" },
+  cancelled: { label: "Cancelled", badgeCls: "bg-red-500/10 text-red-500 border border-red-500/20" },
 };
 
 export default function AssignVehicle() {
@@ -38,26 +47,32 @@ export default function AssignVehicle() {
   const [selectedAssignment, setSelectedAssignment] = useState(null);
 
   const dispatch = useDispatch();
-  const { assignments = [], loading } = useSelector((state) => state.vehicle);
+  const { assignments = [], vehicles = [], loading } = useSelector((state) => state.vehicle);
   const { drivers = [] } = useSelector((state) => state.driver);
+  const { trips = [] } = useSelector((state) => state.trip || {});
 
   useEffect(() => {
     dispatch(getAssignedVehicles());
     dispatch(getDrivers());
+    dispatch(getVehicles());
+    dispatch(getAllTrips());
   }, [dispatch]);
 
-  const mappedAssignments = assignments.map(a => ({
-    id: `ASG-${a.id}`,
-    vehicleType: a.Vehicle?.type || "unknown",
-    vehicleNumber: a.Vehicle?.vehicleNumber || "N/A",
-    tripFrom: a.tripFrom || "-",
-    tripTo: a.tripTo || "-",
-    tripStartDate: a.tripStartDate || a.createdAt,
-    driverName: a.User ? `${a.User.firstName} ${a.User.lastName}` : "Unknown",
-    driverPhone: a.User?.phone || "N/A",
-    coDriverName: a.coDriverName || "-",
-    coDriverPhone: a.coDriverPhone || "-",
-    status: a.status || "active",
+  // Ensure assignments is always an array
+  const safeAssignments = Array.isArray(assignments) ? assignments : (assignments?.data || []);
+
+  const mappedAssignments = safeAssignments.map(a => ({
+    id: a?.id ? `ASG-${a.id}` : `ASG-${Math.random().toString(36).substr(2, 9)}`,
+    vehicleType: a?.Vehicle?.type || "unknown",
+    vehicleNumber: a?.Vehicle?.vehicleNumber || "N/A",
+    tripFrom: a?.tripFrom || "-",
+    tripTo: a?.tripTo || "-",
+    tripStartDate: a?.tripStartDate || a?.createdAt || new Date().toISOString(),
+    driverName: a?.User ? `${a.User.firstName || ''} ${a.User.lastName || ''}`.trim() || "Unknown" : "Unknown",
+    driverPhone: a?.User?.phone || "N/A",
+    coDriverName: a?.coDriverName || "-",
+    coDriverPhone: a?.coDriverPhone || "-",
+    status: a?.status || "active",
   }));
 
   /* ── Filter & Pagination ─────────────────────────────────────────────── */
@@ -65,15 +80,15 @@ export default function AssignVehicle() {
   const itemsPerPage = 10;
 
   const filtered = mappedAssignments.filter((a) => {
-    const q = search.toLowerCase();
+    const q = (search || "").toLowerCase();
     const matchSearch =
       !q ||
-      a.id.toLowerCase().includes(q) ||
-      a.vehicleNumber.toLowerCase().includes(q) ||
-      a.driverName.toLowerCase().includes(q) ||
-      a.tripFrom.toLowerCase().includes(q) ||
-      a.tripTo.toLowerCase().includes(q);
-    const matchStatus = statusFilter === "all" || a.status === statusFilter;
+      String(a.id || "").toLowerCase().includes(q) ||
+      String(a.vehicleNumber || "").toLowerCase().includes(q) ||
+      String(a.driverName || "").toLowerCase().includes(q) ||
+      String(a.tripFrom || "").toLowerCase().includes(q) ||
+      String(a.tripTo || "").toLowerCase().includes(q);
+    const matchStatus = statusFilter === "all" || String(a.status).toLowerCase() === String(statusFilter).toLowerCase();
     return matchSearch && matchStatus;
   });
 
@@ -89,11 +104,51 @@ export default function AssignVehicle() {
     scheduled: filtered.filter((a) => a.status === "scheduled").length,
   };
 
+  /* ── Table Scroll Logic ─────────────────────────────────────────────── */
+  const tableContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (tableContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tableContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [paginatedData]);
+
+  const scrollTable = (direction) => {
+    if (tableContainerRef.current) {
+      const scrollAmount = direction === "left" ? -200 : 200;
+      tableContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   const statCards = [
     { label: "Total Assignments", value: counts.total, color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/25", icon: MdAssignment },
     { label: "Active Trips", value: counts.active, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/25", icon: MdDirectionsCar },
     { label: "Scheduled", value: counts.scheduled, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/25", icon: MdCalendarToday },
   ];
+
+  const [selectedAssignmentForDelete, setSelectedAssignmentForDelete] = useState(null);
+  const [selectedAssignmentForEdit, setSelectedAssignmentForEdit] = useState(null);
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedAssignmentForDelete) return;
+    try {
+      const res = await dispatch(deleteAssignment(selectedAssignmentForDelete.id.replace("ASG-", ""))).unwrap();
+      toast.success(res.message || "Assignment deleted successfully");
+      setSelectedAssignmentForDelete(null);
+    } catch (error) {
+      toast.error(error.message || "Failed to delete assignment");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] px-7 py-6 flex flex-col gap-6">
@@ -111,6 +166,18 @@ export default function AssignVehicle() {
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/80 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all">
               <MdDownload size={14} /> Export
+            </button>
+            <button 
+              onClick={() => {
+                dispatch(getAssignedVehicles());
+                dispatch(getDrivers());
+                dispatch(getVehicles());
+                dispatch(getAllTrips());
+                toast.success("Data refreshed successfully");
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/80 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all"
+            >
+              <MdRefresh size={14} /> Refresh
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -146,46 +213,91 @@ export default function AssignVehicle() {
       </div>
 
       {/* ── Filters + Search ────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="flex items-center gap-2 flex-1 min-w-[200px] h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 focus-within:border-[#D4AF37]/40 transition-all">
+      <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-col gap-4 relative z-20">
+        {/* Top Row: Search */}
+        <div className="flex items-center w-full gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 focus-within:border-[#D4AF37]/40 transition-all">
           <MdSearch size={15} className="text-[#111827]/30 shrink-0" />
           <input
             type="text"
             placeholder="Search vehicle, driver, route..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-xs text-[#111827] placeholder:text-[#111827]/25"
+            className="flex-1 bg-transparent border-none outline-none text-xs text-[#111827] placeholder:text-[#111827]/25 min-w-0"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="text-[#111827]/30 hover:text-[#111827]/60 transition-colors">
+            <button onClick={() => setSearch("")} className="text-[#111827]/30 hover:text-[#111827]/60 transition-colors shrink-0">
               <MdClose size={13} />
             </button>
           )}
         </div>
+        </div>
 
-        {/* Status filter */}
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-[#111827]/3 border border-[#111827]/6">
-          {["all", "active", "scheduled", "completed"].map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1 rounded-md text-[11px] font-semibold capitalize transition-all ${
-                statusFilter === s
-                  ? "bg-[#D4AF37] text-white shadow-sm"
-                  : "text-[#111827]/35 hover:text-[#111827]/60"
-              }`}
-            >
-              {s === "all" ? "All" : s}
-            </button>
-          ))}
+        {/* Status filter (Desktop) */}
+        <div className="hidden md:flex items-center gap-1 overflow-x-auto hide-scrollbar shrink-0">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-[#111827]/3 border border-[#111827]/6">
+            {["all", "active", "ongoing", "scheduled", "completed", "cancelled"].map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1 rounded-md text-[11px] font-semibold capitalize transition-all whitespace-nowrap ${
+                  statusFilter === s
+                    ? "bg-[#D4AF37] text-white shadow-sm"
+                    : "text-[#111827]/35 hover:text-[#111827]/60"
+                }`}
+              >
+                {s === "all" ? "All" : s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Status filter (Mobile) */}
+        <div className="md:hidden flex flex-row items-center w-full">
+          <CustomDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="flex-1 h-9 z-40"
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "active", label: "Active" },
+              { value: "ongoing", label: "Ongoing" },
+              { value: "scheduled", label: "Scheduled" },
+              { value: "completed", label: "Completed" },
+              { value: "cancelled", label: "Cancelled" },
+            ]}
+          />
         </div>
       </div>
 
       {/* ── Assignments Table ─────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+      <div className="relative rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden flex flex-col">
+        {canScrollLeft && (
+          <button
+            onClick={() => scrollTable("left")}
+            className="absolute left-0 top-0 h-[48px] z-10 w-12 flex items-center justify-start pl-2 bg-gradient-to-r from-white via-white/80 to-transparent"
+          >
+            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+              <MdChevronLeft size={16} />
+            </div>
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            onClick={() => scrollTable("right")}
+            className="absolute right-0 top-0 h-[48px] z-10 w-12 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white/80 to-transparent"
+          >
+            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+              <MdChevronRight size={16} />
+            </div>
+          </button>
+        )}
+        <div 
+          className="w-full overflow-x-auto hide-scrollbar"
+          ref={tableContainerRef}
+          onScroll={checkScroll}
+        >
+          <table className="w-full border-collapse whitespace-nowrap min-w-max">
             <thead>
               <tr className="border-b border-[#111827]/6">
                 <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Assignment ID</th>
@@ -238,7 +350,13 @@ export default function AssignVehicle() {
                   </td>
                   <td className="px-5 py-4 align-middle text-center">
                     <button id={`action-btn-${a.id}`} className="hidden" />
-                    <ActionMenu assignment={a} onView={() => setSelectedAssignment(a)} />
+                    <ActionMenu 
+                      assignment={a} 
+                      onView={() => setSelectedAssignment(a)}
+                      onDelete={() => setSelectedAssignmentForDelete(a)}
+                      onTrack={() => toast.info("Live tracking API is being implemented...")}
+                      onEdit={() => setSelectedAssignmentForEdit(a)}
+                    />
                   </td>
                 </tr>
               ))}
@@ -260,20 +378,37 @@ export default function AssignVehicle() {
         />
       </div>
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       <AnimatePresence>
-        {showAddModal && (
+        {(showAddModal || selectedAssignmentForEdit) && (
           <AddAssignmentModal
+            editData={selectedAssignmentForEdit}
             drivers={drivers}
-            onClose={() => setShowAddModal(false)}
+            vehicles={vehicles}
+            trips={trips}
+            onClose={() => {
+              setShowAddModal(false);
+              setSelectedAssignmentForEdit(null);
+            }}
             onSave={async (data) => {
-              const res = await dispatch(assignVehicle(data));
-              if (res.meta.requestStatus === "fulfilled") {
-                setShowAddModal(false);
-                toast.success("Vehicle assigned successfully!");
-                dispatch(getAssignedVehicles()); // refresh list
+              if (selectedAssignmentForEdit) {
+                const res = await dispatch(updateAssignment({ id: selectedAssignmentForEdit.id.replace("ASG-", ""), data }));
+                if (res.meta.requestStatus === "fulfilled") {
+                  setSelectedAssignmentForEdit(null);
+                  toast.success("Assignment updated successfully!");
+                  dispatch(getAssignedVehicles()); // refresh list
+                } else {
+                  toast.error(res.payload?.message || "Failed to update assignment");
+                }
               } else {
-                toast.error(res.payload?.message || "Failed to assign vehicle");
+                const res = await dispatch(assignVehicle(data));
+                if (res.meta.requestStatus === "fulfilled") {
+                  setShowAddModal(false);
+                  toast.success("Vehicle assigned successfully!");
+                  dispatch(getAssignedVehicles()); // refresh list
+                } else {
+                  toast.error(res.payload?.message || "Failed to assign vehicle");
+                }
               }
             }}
           />
@@ -284,20 +419,31 @@ export default function AssignVehicle() {
             onClose={() => setSelectedAssignment(null)}
           />
         )}
+        {selectedAssignmentForDelete && (
+          <DeleteAssignmentModal
+            assignment={selectedAssignmentForDelete}
+            onCancel={() => setSelectedAssignmentForDelete(null)}
+            onConfirm={handleDeleteConfirm}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
 }
 
 
-function ActionMenu({ assignment, onView }) {
+function ActionMenu({ assignment, onView, onDelete, onTrack, onEdit }) {
   const [open, setOpen] = useState(false);
   const [rect, setRect] = useState(null);
   const menuRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      const isOutsideMenu = menuRef.current && !menuRef.current.contains(event.target);
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target);
+      
+      if (isOutsideMenu && isOutsideDropdown) {
         setOpen(false);
       }
     };
@@ -339,6 +485,7 @@ function ActionMenu({ assignment, onView }) {
       {open && rect && createPortal(
         <AnimatePresence>
           <motion.div
+            ref={dropdownRef}
             initial={{ opacity: 0, y: -5, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
@@ -355,14 +502,32 @@ function ActionMenu({ assignment, onView }) {
             >
               <MdVisibility size={14} className="text-[#D4AF37]" /> See Details
             </button>
-            <button className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer">
+            <button 
+              onClick={() => {
+                setOpen(false);
+                if (onTrack) onTrack();
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+            >
               <MdLocationOn size={14} className="text-[#D4AF37]" /> Track Trip
             </button>
-            <button className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer">
+            <button 
+              onClick={() => {
+                setOpen(false);
+                if (onEdit) onEdit();
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+            >
               <MdEdit size={14} className="text-[#111827]/50" /> Edit Trip
             </button>
             <div className="h-px bg-[#111827]/5 my-1" />
-            <button className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
+            <button 
+              onClick={() => {
+                setOpen(false);
+                if (onDelete) onDelete();
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            >
               <MdDelete size={14} className="text-red-400" /> Delete
             </button>
           </motion.div>

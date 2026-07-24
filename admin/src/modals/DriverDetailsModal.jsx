@@ -85,7 +85,7 @@ function DriverProfileContent({ data, onClose }) {
           >
             <img src={img} alt={`Document ${i+1}`} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-[#111827]/0 group-hover:bg-[#111827]/10 transition-colors flex items-center justify-center">
-              <span className="opacity-0 group-hover:opacity-100 text-white drop-shadow-md text-xs font-bold transition-opacity">View</span>
+              <span className="text-white drop-shadow-md text-xs font-bold transition-opacity">View</span>
             </div>
           </a>
         ))}

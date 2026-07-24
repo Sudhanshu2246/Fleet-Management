@@ -25,12 +25,32 @@ const VehicleAssignment = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tripFromLat: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    tripFromLng: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     tripTo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tripToLat: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    tripToLng: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     tripStartDate: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tripId: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     coDriverName: {
@@ -42,7 +62,7 @@ const VehicleAssignment = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM("active", "completed", "cancelled"),
+      type: DataTypes.ENUM("active", "ongoing", "completed", "cancelled"),
       defaultValue: "active",
     },
   },

@@ -10,6 +10,7 @@ export default function CustomDropdown({
   icon: Icon,
   className = "",
   dropdownClassName = "",
+  disabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -27,12 +28,13 @@ export default function CustomDropdown({
   const selectedOption = options.find((opt) => opt.value === value) || options[0];
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative ${className} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`} ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         className={`w-full flex items-center justify-between ${Icon ? 'pl-9' : 'pl-4'} pr-4 py-2 bg-white/65 backdrop-blur-md border ${
           isOpen ? "border-[#D4AF37]" : "border-[#111827]/10"
-        } rounded-lg text-sm text-[#111827] focus:outline-none transition-colors cursor-pointer font-medium h-full`}
+        } rounded-lg text-sm text-[#111827] focus:outline-none transition-colors ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} font-medium h-full`}
       >
         {Icon && (
           <Icon

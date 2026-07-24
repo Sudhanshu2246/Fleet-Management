@@ -9,10 +9,10 @@ exports.createVehicle = async (req, res) => {
     const { name, type, vehicleNumber, chassisNumber } = req.body;
 
     // Validate required fields
-    if (!name || !type || !vehicleNumber || !chassisNumber) {
+    if (!name || !type || !vehicleNumber) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields (name, type, vehicleNumber, chassisNumber)",
+        message: "Please provide all required fields (name, type, vehicleNumber)",
       });
     }
 
@@ -26,14 +26,16 @@ exports.createVehicle = async (req, res) => {
         message: "Vehicle with this vehicleNumber already exists",
       });
     }
-    const existingChassis = await Vehicle.findOne({
-      where: { chassisNumber },
-    });
-    if (existingChassis) {
-      return res.status(400).json({
-        success: false,
-        message: "Vehicle with this chassisNumber already exists",
+    if (chassisNumber) {
+      const existingChassis = await Vehicle.findOne({
+        where: { chassisNumber },
       });
+      if (existingChassis) {
+        return res.status(400).json({
+          success: false,
+          message: "Vehicle with this chassisNumber already exists",
+        });
+      }
     }
 
     let registrationImage = req.body.registrationImage || "";
@@ -362,8 +364,13 @@ exports.assignVehicleToDriver = async (req, res) => {
       vehicleType,
       vehicleNumber,
       tripFrom,
+      tripFromLat,
+      tripFromLng,
       tripTo,
+      tripToLat,
+      tripToLng,
       tripStartDate,
+      tripId,
       driverName,
       driverPhone,
       coDriverName,
@@ -434,8 +441,13 @@ exports.assignVehicleToDriver = async (req, res) => {
       vehicleId: vehicle.id,
       driverId: driverUser.id,
       tripFrom,
+      tripFromLat,
+      tripFromLng,
       tripTo,
+      tripToLat,
+      tripToLng,
       tripStartDate,
+      tripId,
       coDriverName: coDriverName || null,
       coDriverPhone: coDriverPhone || null,
     });
@@ -443,8 +455,40 @@ exports.assignVehicleToDriver = async (req, res) => {
     // Optionally update the vehicle to show it's currently assigned to this driver
     await vehicle.update({
       driverAssignedId: driverUser.id,
-      status: "active",
+      status: "occupied",
     });
+
+    const { Driver } = require("../../index/index.model");
+    await Driver.update({ occupiedStatus: "occupied" }, { where: { userId: driverUser.id } });
+
+    if (coDriverPhone) {
+      const coDriverUser = await User.findOne({
+        where: { phone: coDriverPhone, role: "driver", organizationId: req.user.organizationId }
+      });
+      if (coDriverUser) {
+        await Driver.update({ occupiedStatus: "occupied" }, { where: { userId: coDriverUser.id } });
+      }
+    }
+
+    // If a tripId was provided, update the Trip
+    if (tripId) {
+      const { Trip } = require("../../index/index.model");
+      const trip = await Trip.findOne({
+        where: {
+          [require("sequelize").Op.or]: [{ tripId: tripId }, { id: tripId }],
+          organizationId: req.user.organizationId
+        }
+      });
+      if (trip) {
+        await trip.update({
+          vehicleId: vehicle.id,
+          driverId: driverUser.id,
+          coPilotName: coDriverName || null,
+          coPilotPhone: coDriverPhone || null,
+          status: "assigned"
+        });
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -490,5 +534,175 @@ exports.getAssignedVehicles = async (req, res) => {
       success: false,
       message: error.message || "Server Error",
     });
+  }
+};
+
+// @desc    Delete an assignment
+// @route   DELETE /api/v1/vehicles/assignments/:id
+// @access  Private
+exports.deleteAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const assignment = await VehicleAssignment.findOne({
+      where: { id, organizationId: req.user.organizationId },
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    // Free the vehicle
+    const { Vehicle, Driver, Trip } = require("../../index/index.model");
+    if (assignment.vehicleId) {
+      await Vehicle.update(
+        { driverAssignedId: null, status: "available" },
+        { where: { id: assignment.vehicleId } }
+      );
+    }
+
+    // Free the driver
+    if (assignment.driverId) {
+      await Driver.update(
+        { occupiedStatus: "available" },
+        { where: { userId: assignment.driverId } }
+      );
+    }
+
+    // Disconnect from Trip if applicable
+    if (assignment.tripId) {
+      await Trip.update(
+        { vehicleId: null, driverId: null, coPilotName: null, coPilotPhone: null, status: "scheduled" },
+        { where: { id: assignment.tripId } }
+      );
+    }
+
+    await assignment.destroy();
+
+    res.status(200).json({
+      success: true,
+      message: "Assignment deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.updateAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      vehicleType,
+      vehicleNumber,
+      driverPhone,
+      tripFrom,
+      tripFromLat,
+      tripFromLng,
+      tripTo,
+      tripToLat,
+      tripToLng,
+      tripStartDate,
+      tripId,
+      coDriverName,
+      coDriverPhone,
+    } = req.body;
+
+    const { Vehicle, User, Driver, Trip } = require("../../index/index.model");
+
+    const assignment = await VehicleAssignment.findOne({
+      where: { id, organizationId: req.user.organizationId },
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Assignment not found" });
+    }
+
+    // 1. Resolve NEW vehicle
+    let newVehicle = null;
+    if (vehicleNumber) {
+      newVehicle = await Vehicle.findOne({ where: { vehicleNumber, organizationId: req.user.organizationId } });
+      if (!newVehicle) {
+        return res.status(404).json({ success: false, message: "Vehicle not found" });
+      }
+    }
+
+    // 2. Resolve NEW driver
+    let newDriverUser = null;
+    if (driverPhone) {
+      newDriverUser = await User.findOne({ where: { phone: driverPhone, role: "driver", organizationId: req.user.organizationId } });
+      if (!newDriverUser) {
+        return res.status(404).json({ success: false, message: "Driver not found" });
+      }
+    }
+
+    // 3. Free old resources if they changed
+    if (newVehicle && assignment.vehicleId !== newVehicle.id) {
+      await Vehicle.update({ driverAssignedId: null, status: "available" }, { where: { id: assignment.vehicleId } });
+    }
+    if (newDriverUser && assignment.driverId !== newDriverUser.id) {
+      await Driver.update({ occupiedStatus: "available" }, { where: { userId: assignment.driverId } });
+    }
+
+    // 4. Mark new resources as occupied
+    if (newVehicle) {
+      await newVehicle.update({ driverAssignedId: newDriverUser ? newDriverUser.id : assignment.driverId, status: "occupied" });
+    }
+    if (newDriverUser) {
+      await Driver.update({ occupiedStatus: "occupied" }, { where: { userId: newDriverUser.id } });
+    }
+
+    // 5. Update Assignment Record
+    await assignment.update({
+      vehicleId: newVehicle ? newVehicle.id : assignment.vehicleId,
+      driverId: newDriverUser ? newDriverUser.id : assignment.driverId,
+      tripFrom: tripFrom || assignment.tripFrom,
+      tripFromLat: tripFromLat !== undefined ? tripFromLat : assignment.tripFromLat,
+      tripFromLng: tripFromLng !== undefined ? tripFromLng : assignment.tripFromLng,
+      tripTo: tripTo || assignment.tripTo,
+      tripToLat: tripToLat !== undefined ? tripToLat : assignment.tripToLat,
+      tripToLng: tripToLng !== undefined ? tripToLng : assignment.tripToLng,
+      tripStartDate: tripStartDate || assignment.tripStartDate,
+      tripId: tripId || assignment.tripId,
+      coDriverName: coDriverName !== undefined ? coDriverName : assignment.coDriverName,
+      coDriverPhone: coDriverPhone !== undefined ? coDriverPhone : assignment.coDriverPhone,
+    });
+
+    // 6. Update Trip Record if necessary
+    if (assignment.tripId || tripId) {
+      const activeTripId = tripId || assignment.tripId;
+      const trip = await Trip.findOne({ where: { id: activeTripId, organizationId: req.user.organizationId } });
+      if (trip) {
+        await trip.update({
+          vehicleId: newVehicle ? newVehicle.id : assignment.vehicleId,
+          driverId: newDriverUser ? newDriverUser.id : assignment.driverId,
+          coPilotName: coDriverName !== undefined ? coDriverName : assignment.coDriverName,
+          coPilotPhone: coDriverPhone !== undefined ? coDriverPhone : assignment.coDriverPhone,
+          status: "assigned"
+        });
+      }
+    }
+
+    // Fetch the updated assignment with includes to return to frontend
+    const updatedAssignment = await VehicleAssignment.findOne({
+      where: { id },
+      include: [
+        { model: Vehicle, attributes: ["vehicleNumber", "type", "make", "model", "capacity", "licensePlate"] },
+        { model: User, attributes: ["firstName", "lastName", "email", "phone"] },
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Assignment updated successfully",
+      data: updatedAssignment,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

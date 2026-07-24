@@ -9,13 +9,16 @@ function App() {
 
       {/* ✅ Sonner Toaster with custom CSS */}
       <Toaster
-        position="top-right"
+        position="bottom-right"
         expand
+        closeButton
         toastOptions={{
-          unstyled: true, // 🚀 this disables Sonner’s default styles completely
-          classNames: {
-            toast: "sonner-toast",
-          },
+          style: {
+            background: "#111827",
+            color: "#ffffff",
+            border: "1px solid rgba(212, 175, 55, 0.3)",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)"
+          }
         }}
       />
     </>

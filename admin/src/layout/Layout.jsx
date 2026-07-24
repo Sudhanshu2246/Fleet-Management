@@ -38,6 +38,8 @@ export default function Layout() {
         <Sidebar
           collapsed={collapsed}
           onCollapseToggle={() => setCollapsed((v) => !v)}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
       </div>
 
@@ -86,20 +88,9 @@ export default function Layout() {
           .main-content {
             margin-left: 0 !important;
           }
-          .sidebar-wrapper {
-            position: fixed !important;
-            top: 0; left: 0; height: 100%;
-            z-index: 50;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-          }
-          .sidebar-wrapper.mobile-open {
-            transform: translateX(0);
-          }
           .mobile-overlay {
             display: block !important;
           }
-         
         }
       `}</style>
     </div>

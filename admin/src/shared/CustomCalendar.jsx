@@ -12,7 +12,9 @@ export default function CustomCalendar({
   className = "",
   icon: Icon = MdCalendarToday,
   label = "",
-  disablePast = true
+  disablePast = true,
+  minDate,
+  required
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -45,7 +47,8 @@ export default function CustomCalendar({
   const days = Array.from({ length: daysInMonth }).map((_, i) => i + 1);
 
   const prevMonth = () => {
-    if (disablePast && currentYear === today.getFullYear() && currentMonth <= today.getMonth()) return;
+    const minD = minDate ? new Date(minDate) : (disablePast ? today : null);
+    if (minD && currentYear === minD.getFullYear() && currentMonth <= minD.getMonth()) return;
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   };
 
@@ -65,12 +68,20 @@ export default function CustomCalendar({
 
   const displayValue = () => {
     if (!parsedValue || isNaN(parsedValue)) return "";
-    return parsedValue.toLocaleDateString();
+    const y = parsedValue.getFullYear();
+    const m = String(parsedValue.getMonth() + 1).padStart(2, '0');
+    const d = String(parsedValue.getDate()).padStart(2, '0');
+    return `${d}/${m}/${y}`;
   };
 
   return (
-    <div className={`flex flex-col gap-2 relative ${className}`} ref={containerRef}>
-      {label && <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">{label}</label>}
+    <div className={`relative flex flex-col gap-2 ${className}`} ref={containerRef}>
+      {label && (
+        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
+          {label}
+          {required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
+      )}
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center h-11 px-4 rounded-xl bg-white/65 backdrop-blur-md border transition-all duration-300 cursor-pointer ${isOpen ? "border-[#D4AF37] bg-white shadow-[0_0_15px_rgba(212,175,55,0.1)]" : "border-[#111827]/10 hover:border-[#111827]/20"}`}
@@ -175,7 +186,10 @@ export default function CustomCalendar({
                   ))}
                   {days.map(d => {
                     const cellDate = new Date(currentYear, currentMonth, d);
-                    const isPast = disablePast && cellDate < today;
+                    const minDateObj = minDate ? new Date(minDate) : null;
+                    if (minDateObj) minDateObj.setHours(0, 0, 0, 0);
+                    
+                    const isPast = (disablePast && cellDate < today) || (minDateObj && cellDate < minDateObj);
                     const isSelected = parsedValue && 
                                        parsedValue.getDate() === d && 
                                        parsedValue.getMonth() === currentMonth && 

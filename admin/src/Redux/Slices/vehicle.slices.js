@@ -6,6 +6,8 @@ import {
   deleteVehicle,
   getAssignedVehicles,
   assignVehicle,
+  deleteAssignment,
+  updateAssignment
 } from "../Thunks/vehicle.thunks";
 
 const initialState = {
@@ -87,20 +89,67 @@ const vehicleSlice = createSlice({
       })
 
       // ================= UPDATE =================
+      .addCase(updateVehicle.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(updateVehicle.fulfilled, (state, action) => {
         state.loading = false;
+        state.success = true;
         const index = state.vehicles.findIndex(
-          (v) => v._id === action.payload.data._id
+          (v) => v.id === action.payload.data.id || v._id === action.payload.data._id
         );
         if (index !== -1) {
           state.vehicles[index] = action.payload.data;
         }
       })
+      .addCase(updateVehicle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to update vehicle";
+      })
 
       // ================= DELETE =================
+      .addCase(deleteVehicle.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(deleteVehicle.fulfilled, (state, action) => {
         state.loading = false;
-        state.vehicles = state.vehicles.filter((v) => v._id !== action.payload.id);
+        state.success = true;
+        state.vehicles = state.vehicles.filter((v) => v.id !== action.payload.id && v._id !== action.payload.id);
+      })
+      .addCase(deleteVehicle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to delete vehicle";
+      })
+
+      // ================= DELETE ASSIGNMENT =================
+      .addCase(deleteAssignment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteAssignment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.assignments = state.assignments.filter((a) => a.id !== action.payload.id);
+      })
+      .addCase(deleteAssignment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to delete assignment";
+      })
+
+      // ================= UPDATE ASSIGNMENT =================
+      .addCase(updateAssignment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateAssignment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        const index = state.assignments.findIndex(a => a.id === action.payload.data?.id);
+        if (index !== -1) {
+          state.assignments[index] = action.payload.data;
+        }
+      })
+      .addCase(updateAssignment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to update assignment";
       });
   },
 });

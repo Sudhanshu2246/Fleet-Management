@@ -105,6 +105,116 @@ exports.createDriver = async (req, res) => {
   }
 };
 
+// @desc    Update a driver
+// @route   PUT /api/v1/drivers/:id
+// @access  Private (Company Admin)
+exports.updateDriver = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const { 
+      name, phone, driverType,
+      licenseNumber, licenseType, vehicleCategories, licenseExpiryDate,
+      aadhaarCard, panCard
+    } = req.body;
+
+    const driverUser = await User.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId || req.user.organization,
+        role: "driver"
+      }
+    });
+
+    if (!driverUser) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: "Driver not found" });
+    }
+
+    const uploadMultiple = async (filesArray) => {
+      let urls = [];
+      if (filesArray && Array.isArray(filesArray)) {
+        for (const file of filesArray) {
+          try {
+            const result = await uploadFromBuffer(file.buffer, "driver_docs");
+            urls.push(result.secure_url);
+          } catch (error) { 
+            console.log("Cloudinary Upload Failed:", error.message); 
+          }
+        }
+      }
+      return urls;
+    };
+
+    let licenseImage = undefined;
+    let aadharImage = undefined;
+    let panImage = undefined;
+
+    if (req.files) {
+      if (req.files.licenseImage) licenseImage = await uploadMultiple(req.files.licenseImage);
+      if (req.files.aadhaarImage) aadharImage = await uploadMultiple(req.files.aadhaarImage);
+      if (req.files.panImage) panImage = await uploadMultiple(req.files.panImage);
+    }
+
+    if (name) {
+      const [firstName, ...lastNameParts] = name.split(" ");
+      driverUser.firstName = firstName;
+      driverUser.lastName = lastNameParts.join(" ") || " ";
+    }
+    if (phone) driverUser.phone = phone;
+    await driverUser.save({ transaction });
+
+    const driverProfile = await Driver.findOne({ where: { userId: driverUser.id } });
+    if (driverProfile) {
+      if (driverType) driverProfile.driverType = driverType.replace("-", "_").toLowerCase();
+      if (licenseNumber !== undefined) driverProfile.licenseNumber = licenseNumber;
+      if (licenseType !== undefined) driverProfile.licenseType = licenseType;
+      if (vehicleCategories !== undefined) driverProfile.vehicleCategories = vehicleCategories;
+      if (licenseExpiryDate !== undefined) driverProfile.licenseExpiryDate = licenseExpiryDate;
+      if (aadhaarCard !== undefined) driverProfile.aadhaarCard = aadhaarCard;
+      if (panCard !== undefined) driverProfile.panCard = panCard;
+
+      if (licenseImage) driverProfile.licenseImage = licenseImage;
+      if (aadharImage) driverProfile.aadharImage = aadharImage;
+      if (panImage) driverProfile.panImage = panImage;
+
+      await driverProfile.save({ transaction });
+    }
+
+    await transaction.commit();
+
+    // Fetch the updated driver with full details
+    const updatedDriver = await User.findOne({
+      where: { id: driverUser.id },
+      attributes: { exclude: ["password"] },
+      include: [
+        {
+          model: Driver,
+          as: "Driver",
+          include: [
+            {
+              model: Vehicle,
+              as: "AssignedVehicle",
+              attributes: ["id", "vehicleNumber", "name", "type", "status"]
+            }
+          ]
+        }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Driver updated successfully",
+      data: updatedDriver,
+    });
+  } catch (error) {
+    await transaction.rollback();
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
 // @desc    Get all drivers (with pagination and filtering)
 // @route   GET /api/v1/drivers
 // @access  Private
@@ -175,7 +285,7 @@ exports.assignVehicle = async (req, res) => {
     const driverUser = await User.findOne({
       where: {
         id: driverId,
-        organizationId: req.user.organization,
+        organizationId: req.user.organizationId || req.user.organization,
         role: "driver",
       }
     });
@@ -187,7 +297,7 @@ exports.assignVehicle = async (req, res) => {
     const vehicle = await Vehicle.findOne({
       where: {
         id: vehicleId,
-        organizationId: req.user.organization,
+        organizationId: req.user.organizationId || req.user.organization,
       }
     });
 
@@ -242,7 +352,7 @@ exports.updateDriverStatus = async (req, res) => {
     const { isActive } = req.body;
     
     const driverUser = await User.findOne({
-      where: { id: req.params.id, organizationId: req.user.organization, role: "driver" }
+      where: { id: req.params.id, organizationId: req.user.organizationId || req.user.organization, role: "driver" }
     });
 
     if (!driverUser) {
@@ -365,5 +475,87 @@ exports.deleteDriver = async (req, res) => {
       success: false,
       message: error.message || "Server Error"
     });
+  }
+};
+
+// ─── DRIVER DASHBOARD DATA ────────────────
+exports.getDriverDashboard = async (req, res) => {
+  try {
+    const { Trip, VehicleAssignment, Vehicle } = require("../../index/index.model");
+
+    // req.user has the driver user details from protect middleware
+    const driverId = req.user.id;
+    const organizationId = req.user.organizationId;
+
+    // 1. Get the active assignment for this driver
+    const assignment = await VehicleAssignment.findOne({
+      where: {
+        driverId,
+        organizationId,
+        status: "active",
+      },
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: Vehicle,
+          attributes: ["id", "vehicleNumber", "name", "type", "speed", "battery", "locationLat", "locationLng"],
+        },
+      ],
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "No active assignment found for this driver",
+      });
+    }
+
+    // 2. Try to get the active trip for this driver and vehicle
+    const trip = await Trip.findOne({
+      where: {
+        driverId,
+        vehicleId: assignment.vehicleId,
+        status: ["ongoing", "scheduled"],
+      },
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: require("../../index/index.model").User,
+          attributes: ["id", "firstName", "lastName", "phone", "email"]
+        }
+      ]
+    });
+
+    // Also get CoDriver if applicable (find by coPilotPhone)
+    let coDriver = null;
+    if (trip && trip.coPilotPhone) {
+      coDriver = await require("../../index/index.model").User.findOne({
+        where: { phone: trip.coPilotPhone, role: "driver", organizationId },
+        attributes: ["id", "firstName", "lastName", "phone", "email"]
+      });
+    } else if (assignment.coDriverPhone) {
+      coDriver = await require("../../index/index.model").User.findOne({
+        where: { phone: assignment.coDriverPhone, role: "driver", organizationId },
+        attributes: ["id", "firstName", "lastName", "phone", "email"]
+      });
+    }
+
+    // Attach CoDriver to trip if it exists
+    const tripData = trip ? trip.toJSON() : null;
+    if (tripData && coDriver) {
+      tripData.CoDriver = coDriver;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        assignment,
+        vehicle: assignment.Vehicle || null,
+        trip: tripData || null,
+      },
+    });
+  } catch (error) {
+    console.error("Driver Dashboard Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

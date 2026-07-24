@@ -6,7 +6,7 @@ export const createDriver = createAsyncThunk(
   "driver/createDriver",
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await api.post("/drivers", formData);
+      const res = await api.post("/drivers/register-driver", formData);
       return res.data;
     } catch (error) {
       return rejectWithValue(
@@ -46,6 +46,21 @@ export const assignVehicle = createAsyncThunk(
   }
 );
 
+// ================= UPDATE DRIVER =================
+export const updateDriver = createAsyncThunk(
+  "driver/updateDriver",
+  async ({ id, formData }, { rejectWithValue }) => {
+    try {
+      const res = await api.put(`/drivers/${id}`, formData);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to update driver" }
+      );
+    }
+  }
+);
+
 // ================= UPDATE STATUS =================
 export const updateDriverStatus = createAsyncThunk(
   "driver/updateDriverStatus",
@@ -71,6 +86,21 @@ export const getDriverById = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Failed to fetch driver details" }
+      );
+    }
+  }
+);
+
+// ================= DELETE DRIVER =================
+export const deleteDriver = createAsyncThunk(
+  "driver/deleteDriver",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.delete(`/drivers/${id}`);
+      return { id, ...res.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to delete driver" }
       );
     }
   }

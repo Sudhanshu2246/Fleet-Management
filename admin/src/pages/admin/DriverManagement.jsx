@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getDrivers, createDriver, updateDriverStatus } from "../../Redux/Thunks/driver.thunks";
+import { getDrivers, updateDriverStatus, deleteDriver } from "../../Redux/Thunks/driver.thunks";
 import { clearDriverState } from "../../Redux/Slices/driver.slices";
 import DriverDetailsModal from "../../modals/DriverDetailsModal";
 import AddDriverModal from "../../modals/AddDriverModal";
@@ -33,10 +33,13 @@ import {
   MdTimer,
   MdCalendarToday,
   MdShield,
+  MdChevronLeft,
+  MdChevronRight,
 } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Pagination from "../../shared/Pagination";
+import CustomDropdown from "../../shared/CustomDropdown";
 
 
 const STATUS_MAP = {
@@ -60,10 +63,12 @@ const AVATAR_COLORS = [
 export default function DriverManagement() {
   const [search,         setSearch]         = useState("");
   const [statusFilter,   setStatusFilter]   = useState("all");
+  const [typeFilter,     setTypeFilter]     = useState("all");
   const [sortBy,         setSortBy]         = useState("id");
   const [openMenu,       setOpenMenu]       = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [showAddModal,   setShowAddModal]   = useState(false);
+  const [editDriverData, setEditDriverData] = useState(null);
   const [deleteModal,    setDeleteModal]    = useState(null);
   const [blockModal,     setBlockModal]     = useState(null);   // { driver, action: 'suspend'|'activate' }
   const [currentPage,    setCurrentPage]    = useState(1);
@@ -72,6 +77,34 @@ export default function DriverManagement() {
   const dispatch = useDispatch();
   const { drivers, loading, success, error } = useSelector((state) => state.driver);
 
+  const tableContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (tableContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tableContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [drivers]);
+
+  const scrollTable = (direction) => {
+    if (tableContainerRef.current) {
+      const scrollAmount = 300;
+      tableContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   useEffect(() => {
     dispatch(getDrivers());
   }, [dispatch]);
@@ -79,6 +112,7 @@ export default function DriverManagement() {
   useEffect(() => {
     if (success) {
       setShowAddModal(false);
+      setEditDriverData(null);
       setBlockModal(null);
       dispatch(clearDriverState());
     }
@@ -101,7 +135,8 @@ export default function DriverManagement() {
       aadhaarCard: driverDetails.aadhaarCard || "—",
       panCard: driverDetails.panCard || "—",
       isVerified: driverDetails.isVerified || false,
-      joinDate: new Date(d.createdAt).toLocaleDateString(),
+      occupiedStatus: driverDetails.occupiedStatus || "available",
+      joinDate: new Date(d.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       raw: d,
     };
   });
@@ -111,16 +146,17 @@ export default function DriverManagement() {
     const q = search.toLowerCase();
     const matchSearch =
       !q ||
-      d.id.toLowerCase().includes(q) ||
-      d.name.toLowerCase().includes(q) ||
-      d.email.toLowerCase().includes(q) ||
-      d.phone.includes(q);
+      (d.id && d.id.toString().toLowerCase().includes(q)) ||
+      (d.name && d.name.toLowerCase().includes(q)) ||
+      (d.email && d.email.toLowerCase().includes(q)) ||
+      (d.phone && d.phone.includes(q));
     const matchStatus = statusFilter === "all" || d.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchType = typeFilter === "all" || d.driverType === typeFilter;
+    return matchSearch && matchStatus && matchType;
   }).sort((a, b) => {
-    if (sortBy === "id")     return a.id.toString().localeCompare(b.id.toString());
-    if (sortBy === "name")   return a.name.localeCompare(b.name);
-    if (sortBy === "status") return a.status.localeCompare(b.status);
+    if (sortBy === "id")     return (a.id?.toString() || "").localeCompare(b.id?.toString() || "");
+    if (sortBy === "name")   return (a.name || "").localeCompare(b.name || "");
+    if (sortBy === "status") return (a.status || "").localeCompare(b.status || "");
     return 0;
   });
 
@@ -200,7 +236,7 @@ export default function DriverManagement() {
       </div>
 
       {/* ── Filters + Search ────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-wrap items-center gap-3">
+      <div className="relative z-40 rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-wrap items-center gap-3">
         {/* Search */}
         <div className="flex items-center gap-2 flex-1 min-w-[200px] h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 focus-within:border-[#D4AF37]/40 focus-within:shadow-[0_0_0_3px_rgba(212,175,55,0.06)] transition-all">
           <MdSearch size={15} className="text-[#111827]/30 shrink-0" />
@@ -236,15 +272,32 @@ export default function DriverManagement() {
         </div>
 
         {/* Sort */}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 text-[11px] text-[#111827]/50 outline-none cursor-pointer"
-        >
-          <option value="id">Sort: ID</option>
-          <option value="name">Sort: Name</option>
-          <option value="status">Sort: Status</option>
-        </select>
+        <div className="w-[130px] h-9">
+          <CustomDropdown
+            value={sortBy}
+            onChange={setSortBy}
+            options={[
+              { label: "Sort: ID", value: "id" },
+              { label: "Sort: Name", value: "name" },
+              { label: "Sort: Status", value: "status" },
+            ]}
+            className="h-full"
+          />
+        </div>
+
+        {/* Driver Type Filter */}
+        <div className="w-[130px] h-9">
+          <CustomDropdown
+            value={typeFilter}
+            onChange={setTypeFilter}
+            options={[
+              { label: "All Types", value: "all" },
+              { label: "Driver", value: "driver" },
+              { label: "Co-Driver", value: "co_driver" },
+            ]}
+            className="h-full"
+          />
+        </div>
 
         {/* Count */}
         <span className="text-[11px] text-[#111827]/30 shrink-0 ml-auto">
@@ -253,12 +306,36 @@ export default function DriverManagement() {
       </div>
 
       {/* ── Drivers Table ───────────────────────────────────────────────── */}
-      <div className="relative z-30 rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md pb-16">
-        <div className="w-full">
-          <table className="w-full border-collapse">
+      <div className="relative z-30 rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md pb-16 overflow-hidden">
+        {canScrollLeft && (
+          <button
+            onClick={() => scrollTable("left")}
+            className="absolute left-0 top-0 h-[38px] z-10 w-12 flex items-center justify-start pl-2 bg-gradient-to-r from-white via-white/80 to-transparent"
+          >
+            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+              <MdChevronLeft size={16} />
+            </div>
+          </button>
+        )}
+        {canScrollRight && (
+          <button
+            onClick={() => scrollTable("right")}
+            className="absolute right-0 top-0 h-[38px] z-10 w-12 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white/80 to-transparent"
+          >
+            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+              <MdChevronRight size={16} />
+            </div>
+          </button>
+        )}
+        <div 
+          className="w-full overflow-x-auto hide-scrollbar"
+          ref={tableContainerRef}
+          onScroll={checkScroll}
+        >
+          <table className="w-full border-collapse whitespace-nowrap min-w-max">
             <thead>
               <tr className="border-b border-[#111827]/6">
-                {["ID & Driver", "Contact", "License Info", "Identity", "Status", "Joined", ""].map((h) => (
+                {["ID & Driver", "Contact", "License Info", "Identity", "Status", "Occupied", "Joined", ""].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-[#111827]/30 uppercase tracking-widest whitespace-nowrap">
                     {h}
                   </th>
@@ -268,7 +345,7 @@ export default function DriverManagement() {
             <tbody>
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-16 text-[#111827]/30 text-sm">
+                  <td colSpan={8} className="text-center py-16 text-[#111827]/30 text-sm">
                     No drivers match your filters.
                   </td>
                 </tr>
@@ -289,7 +366,9 @@ export default function DriverManagement() {
                           </div>
                           <div>
                             <div className="text-[13px] font-semibold text-[#111827] leading-none">{d.name}</div>
-                            <div className="text-[10px] font-bold text-[#D4AF37] font-mono mt-0.5">ID: {d.id} • {d.driverType.replace("_", " ")}</div>
+                            <div className={`text-[10px] font-bold font-mono mt-0.5 ${d.driverType === 'co_driver' ? 'text-indigo-500' : 'text-[#D4AF37]'}`}>
+                              ID: {d.id} • <span className="uppercase">{d.driverType.replace("_", " ")}</span>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -335,6 +414,17 @@ export default function DriverManagement() {
                         </div>
                       </td>
 
+                      {/* Occupied Status */}
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                          d.occupiedStatus === "occupied" 
+                            ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                            : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        }`}>
+                          {d.occupiedStatus}
+                        </span>
+                      </td>
+
                       {/* Joined */}
                       <td className="px-4 py-3 align-top">
                         <div className="flex items-center gap-1.5 mt-1">
@@ -348,7 +438,7 @@ export default function DriverManagement() {
                         <div className={`relative ${openMenu === d.id ? 'z-50' : ''}`}>
                           <button
                             onClick={() => setOpenMenu(openMenu === d.id ? null : d.id)}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 hover:text-[#111827]/70 transition-colors opacity-0 group-hover:opacity-100"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 hover:text-[#111827]/70 transition-colors"
                           >
                             <MdMoreVert size={16} />
                           </button>
@@ -358,6 +448,11 @@ export default function DriverManagement() {
                               onView={() => { 
                                 setSelectedDriver(d); 
                                 setOpenMenu(null); 
+                              }}
+                              onEdit={() => {
+                                setEditDriverData(d);
+                                setShowAddModal(true);
+                                setOpenMenu(null);
                               }}
                               onToggleStatus={() => {
                                 setBlockModal({ driver: d, action: d.status === "active" ? "suspend" : "activate" });
@@ -394,7 +489,7 @@ export default function DriverManagement() {
       )}
 
       {/* ── Add Driver Modal ─────────────────────────────────────────────── */}
-      {showAddModal && <AddDriverModal onClose={() => setShowAddModal(false)} dispatch={dispatch} loading={loading} />}
+      {showAddModal && <AddDriverModal onClose={() => { setShowAddModal(false); setEditDriverData(null); }} dispatch={dispatch} loading={loading} editDriverData={editDriverData} />}
 
       {/* ── Block / Activate Modal ───────────────────────────────────────── */}
       {blockModal && (
@@ -413,7 +508,10 @@ export default function DriverManagement() {
       {deleteModal && (
         <DeleteDriverModal
           driver={deleteModal}
-          onConfirm={() => setDeleteModal(null)}
+          onConfirm={() => {
+            dispatch(deleteDriver(deleteModal.id));
+            setDeleteModal(null);
+          }}
           onCancel={() => setDeleteModal(null)}
         />
       )}
@@ -425,10 +523,18 @@ export default function DriverManagement() {
 }
 
 /* ── Driver Action Menu ───────────────────────────────────────────────────── */
-function DriverActionMenu({ driver, onView, onToggleStatus, onDelete }) {
+function DriverActionMenu({ driver, onView, onEdit, onToggleStatus, onDelete }) {
   const isSuspended = driver.status !== "active";
   return (
     <div className="absolute right-0 top-8 z-30 w-48 rounded-xl overflow-hidden bg-white/65 backdrop-blur-md border border-[#111827]/10 shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+      <button
+        onMouseDown={onEdit}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] hover:bg-[#111827]/5 transition-colors text-left"
+      >
+        <MdEdit size={14} className="text-[#D4AF37]" />
+        <span className="text-[#111827]/60">Edit Driver</span>
+      </button>
+
       <button
         onMouseDown={onView}
         className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] hover:bg-[#111827]/5 transition-colors text-left"
@@ -460,12 +566,12 @@ function DriverActionMenu({ driver, onView, onToggleStatus, onDelete }) {
         onMouseDown={onDelete}
         className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] hover:bg-red-500/8 transition-colors text-left"
       >
-        <MdBlock size={14} className="text-red-400" />
-        <span className="text-red-400">Block Driver</span>
+        <MdDelete size={14} className="text-red-400" />
+        <span className="text-red-400">Delete Driver</span>
       </button>
     </div>
   );
 }
 
 
-
+

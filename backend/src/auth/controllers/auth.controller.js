@@ -113,8 +113,6 @@ exports.driverAppLogin = async (req, res) => {
       idToken,
       driverPhone, // kept for backward compatibility/logging
       vehicleNumber,
-      coDriverName,
-      coDriverPhone
     } = req.body || {};
 
     if (!driverName || !idToken || !vehicleNumber) {
@@ -178,9 +176,14 @@ exports.driverAppLogin = async (req, res) => {
       });
     }
 
+    const { VehicleAssignment } = require("../../index/index.model");
+
+    // Clean up vehicle number to avoid trailing space or case issues
+    const cleanVehicleNum = vehicleNumber.replace(/\s+/g, '').toUpperCase();
+    
     const vehicle = await Vehicle.findOne({ 
       where: {
-        vehicleNumber: vehicleNumber,
+        vehicleNumber: cleanVehicleNum,
         organizationId: user.organizationId
       }
     });
@@ -188,53 +191,53 @@ exports.driverAppLogin = async (req, res) => {
     if (!vehicle) {
       return res.status(404).json({
         success: false,
-        message: "Vehicle not found in your organization",
+        message: "Vehicle not found in your organization. Please ensure the vehicle number is entered correctly.",
       });
     }
 
-    // Validate co-driver if vehicle type requires it
-    const heavyVehicles = ["truck", "mini_truck", "bus", "mini_bus"];
-    if (heavyVehicles.includes(vehicle.type) && (!coDriverName || !coDriverPhone)) {
-      return res.status(400).json({
+    // Check the VehicleAssignment table instead of the outdated driverAssignedId field
+    const assignment = await VehicleAssignment.findOne({
+      where: {
+        vehicleId: vehicle.id,
+        driverId: user.id,
+        status: {
+          [Op.in]: ['active', 'ongoing']
+        }
+      }
+    });
+
+    if (!assignment) {
+      return res.status(403).json({
         success: false,
-        message: `coDriverName and coDriverPhone are mandatory for vehicle type: ${vehicle.type}`,
+        message: "This vehicle is not currently assigned to you.",
       });
     }
 
-    // Auto-assign the vehicle to this driver upon login
-    const { VehicleAssignment } = require("../../index/index.model");
+    if (assignment.status === 'active') {
+      await assignment.update({ status: 'ongoing' });
+    }
     
-    await VehicleAssignment.create({
-      organizationId: user.organizationId,
-      vehicleId: vehicle.id,
-      driverId: user.id,
-      coDriverName: coDriverName || null,
-      coDriverPhone: coDriverPhone || null,
-    });
-
-    await vehicle.update({
-      driverAssignedId: user.id,
-      status: "active",
-    });
+    if (assignment.tripId) {
+      const { Trip } = require("../../index/index.model");
+      const trip = await Trip.findOne({
+        where: {
+          [Op.or]: [{ tripId: assignment.tripId }, { id: assignment.tripId }],
+          organizationId: user.organizationId
+        }
+      });
+      if (trip && trip.status === 'scheduled') {
+        await trip.update({ status: 'ongoing', startTime: new Date() });
+      }
+    }
 
     // Fetch primary driver details
     const primaryDriverRecord = await Driver.findOne({ where: { userId: user.id } });
-
-    // Try to fetch co-driver details from DB if they exist
-    let coDriverUser = null;
-    let coDriverRecord = null;
-    if (coDriverPhone) {
-      coDriverUser = await User.findOne({ where: { phone: coDriverPhone, role: "driver", organizationId: user.organizationId } });
-      if (coDriverUser) {
-        coDriverRecord = await Driver.findOne({ where: { userId: coDriverUser.id } });
-      }
-    }
 
     const token = generateToken(user);
 
     res.status(200).json({
       success: true,
-      message: "Login successful and vehicle assigned",
+      message: "Login successful",
       token,
       user: {
         id: user.id,
@@ -251,12 +254,6 @@ exports.driverAppLogin = async (req, res) => {
         type: vehicle.type,
         name: vehicle.name
       },
-      coDriver: coDriverName ? {
-        name: coDriverUser ? (coDriverUser.firstName + " " + coDriverUser.lastName) : coDriverName,
-        phone: coDriverPhone,
-        id: coDriverUser ? coDriverUser.id : null,
-        driverDetails: coDriverRecord || null
-      } : null
     });
   } catch (error) {
     console.error("Driver Login Error:", error);

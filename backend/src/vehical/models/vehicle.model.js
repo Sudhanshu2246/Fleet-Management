@@ -17,8 +17,7 @@ const Vehicle = sequelize.define(
     },
     chassisNumber: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
+      allowNull: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -26,7 +25,7 @@ const Vehicle = sequelize.define(
     },
     type: {
       type: DataTypes.ENUM(
-        "bus", "mini_bus", "truck", "mini_truck", "car", "suv", "motorbike", "other"
+        "truck", "van", "bike", "shuttle", "car", "bus", "suv", "motorcycle", "pickup", "minivan", "tractor", "trailer", "camper", "forklift", "ambulance", "firetruck", "police", "boat", "helicopter", "airplane", "drone", "scooter", "bicycle"
       ),
       allowNull: false,
     },
@@ -39,7 +38,7 @@ const Vehicle = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM("active", "idle", "offline"),
+      type: DataTypes.ENUM("active", "idle", "offline", "occupied"),
       defaultValue: "offline",
     },
     speed: {

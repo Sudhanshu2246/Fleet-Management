@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { registerCompany, login, logout } from "../Thunks/auth.thunks";
 
 const initialState = {
-  user: null,
+  user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null,
   token: localStorage.getItem("token") || null,
   organization: null,
 
@@ -38,6 +38,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
 
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
       .addCase(registerCompany.rejected, (state, action) => {
         state.loading = false;
@@ -57,6 +58,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
 
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -75,6 +77,8 @@ const authSlice = createSlice({
         state.organization = null;
 
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.clear();
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;

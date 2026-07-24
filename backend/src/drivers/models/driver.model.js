@@ -78,6 +78,10 @@ const Driver = sequelize.define("Driver", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  occupiedStatus: {
+    type: DataTypes.ENUM("available", "occupied"),
+    defaultValue: "available",
+  },
 
   lastLogin: {
     type: DataTypes.DATE,

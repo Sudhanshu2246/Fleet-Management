@@ -40,3 +40,20 @@
 * {
   -ms-overflow-style: none;
 }
+
+/* Sonner Customizations */
+[data-sonner-toast] [data-close-button] {
+  top: 20px !important;
+  right: 0px !important;
+  left: auto !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ba1616 !important;
+  background-color: #fff !important;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+}

@@ -18,7 +18,7 @@ const startServer = async () => {
 
     const { sequelize } = require("./config/db");
     require("./index/index.model");
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
 
     console.log("✅Database Models Synced");
 

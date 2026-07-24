@@ -10,6 +10,8 @@ import VehicleDrawer from "../../modals/VehicleDrawer";
 import AddVehicleModal from "../../modals/AddVehicleModal";
 import DeleteVehicleModal from "../../modals/DeleteVehicleModal";
 import { clearVehicleState } from "../../Redux/Slices/vehicle.slices";
+import Pagination from "../../shared/Pagination";
+import CustomDropdown from "../../shared/CustomDropdown";
 import {
   MdChevronLeft,
   MdChevronRight,
@@ -33,6 +35,17 @@ import {
   MdAirportShuttle,
   MdDownload,
   MdRefresh,
+  MdDirectionsBus,
+  MdAgriculture,
+  MdRvHookup,
+  MdPrecisionManufacturing,
+  MdMedicalServices,
+  MdLocalFireDepartment,
+  MdLocalPolice,
+  MdDirectionsBoat,
+  MdFlight,
+  MdToys,
+  MdElectricScooter,
 } from "react-icons/md";
 
 /* ── Status / type maps ──────────────────────────────────────────────────── */
@@ -55,13 +68,38 @@ const STATUS_MAP = {
     pulseCls: "",
     badgeCls: "bg-red-500/10    text-red-400    border border-red-500/20",
   },
+  occupied: {
+    label: "Occupied",
+    dotCls: "bg-blue-400",
+    pulseCls: "",
+    badgeCls: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
+  },
 };
 
 const TYPE_ICON = {
   truck: MdLocalShipping,
   van: MdAirportShuttle,
   bike: MdTwoWheeler,
-  shuttle: MdDirectionsCar,
+  shuttle: MdAirportShuttle,
+  car: MdDirectionsCar,
+  bus: MdDirectionsBus,
+  suv: MdDirectionsCar,
+  motorcycle: MdTwoWheeler,
+  pickup: MdLocalShipping,
+  minivan: MdAirportShuttle,
+  tractor: MdAgriculture,
+  trailer: MdRvHookup,
+  camper: MdRvHookup,
+  forklift: MdPrecisionManufacturing,
+  ambulance: MdMedicalServices,
+  firetruck: MdLocalFireDepartment,
+  police: MdLocalPolice,
+  boat: MdDirectionsBoat,
+  helicopter: MdFlight,
+  airplane: MdFlight,
+  drone: MdToys,
+  scooter: MdElectricScooter,
+  bicycle: MdTwoWheeler,
 };
 const TYPE_LABEL = {
   truck: "Truck",
@@ -96,6 +134,7 @@ export default function Vehicles() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [openMenu, setOpenMenu] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [editVehicleData, setEditVehicleData] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,6 +181,7 @@ export default function Vehicles() {
   useEffect(() => {
     if (success) {
       setShowAddModal(false);
+      setEditVehicleData(null);
       dispatch(clearVehicleState());
     }
   }, [success, dispatch]);
@@ -171,6 +211,7 @@ export default function Vehicles() {
     active: vehicles.filter((v) => v.status === "active").length,
     idle: vehicles.filter((v) => v.status === "idle").length,
     offline: vehicles.filter((v) => v.status === "offline").length,
+    occupied: vehicles.filter((v) => v.status === "occupied").length,
   };
 
   /* ── Stat card config ───────────────────────────────────────────────── */
@@ -249,7 +290,7 @@ export default function Vehicles() {
       </div>
 
       {/* ── Stat Cards ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -282,8 +323,8 @@ export default function Vehicles() {
 
       {/* ── Filters + Search ────────────────────────────────────────────── */}
       <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-col gap-4 relative z-20">
-        {/* Top Row: Search & View Toggle */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Top Row: Search */}
+        <div className="flex items-center w-full gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 focus-within:border-[#D4AF37]/40 focus-within:shadow-[0_0_0_3px_rgba(212,175,55,0.06)] transition-all">
             <MdSearch size={15} className="text-[#111827]/30 shrink-0" />
             <input
@@ -304,11 +345,11 @@ export default function Vehicles() {
           </div>
         </div>
 
-        {/* Bottom Row: Filters (Scrollable horizontally) */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 hide-scrollbar">
+        {/* Bottom Row: Filters (Desktop & Tablet) */}
+        <div className="hidden md:flex items-center gap-3 overflow-x-auto pb-1 hide-scrollbar">
           {/* Status filter */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-[#111827]/3 border border-[#111827]/6 shrink-0">
-            {["all", "active", "idle", "offline"].map((s) => (
+            {["all", "active", "idle", "offline", "occupied"].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -344,6 +385,35 @@ export default function Vehicles() {
           <span className="text-[11px] text-[#111827]/30 shrink-0 ml-auto whitespace-nowrap">
             {filtered.length} of {vehicles.length} vehicles
           </span>
+        </div>
+
+        {/* Bottom Row: Filters (Mobile Dropdowns) */}
+        <div className="md:hidden flex flex-row items-center gap-3">
+          <CustomDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="flex-1 h-9 z-50"
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "active", label: "Active" },
+              { value: "idle", label: "Idle" },
+              { value: "offline", label: "Offline" },
+              { value: "occupied", label: "Occupied" },
+            ]}
+          />
+
+          <CustomDropdown
+            value={typeFilter}
+            onChange={setTypeFilter}
+            className="flex-1 h-9 z-40"
+            options={[
+              { value: "all", label: "All Types" },
+              { value: "truck", label: "Truck" },
+              { value: "van", label: "Van" },
+              { value: "bike", label: "Bike" },
+              { value: "shuttle", label: "Shuttle" },
+            ]}
+          />
         </div>
       </div>
 
@@ -535,7 +605,7 @@ export default function Vehicles() {
                             onClick={(e) => {
                               setOpenMenu(openMenu === v.id ? null : v.id);
                             }}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 hover:text-[#111827]/70 transition-colors opacity-0 group-hover:opacity-100"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 hover:text-[#111827]/70 transition-colors"
                           >
                             <MdMoreVert size={16} />
                           </button>
@@ -546,7 +616,11 @@ export default function Vehicles() {
                                 setSelectedVehicle(v);
                                 setOpenMenu(null);
                               }}
-                              onEdit={() => setOpenMenu(null)}
+                              onEdit={() => {
+                                setEditVehicleData(v);
+                                setShowAddModal(true);
+                                setOpenMenu(null);
+                              }}
                               onDelete={() => {
                                 setShowDeleteModal(v);
                                 setOpenMenu(null);
@@ -583,12 +657,16 @@ export default function Vehicles() {
         />
       )}
 
-      {/* ── Add Vehicle Modal ───────────────────────────────────────────── */}
+      {/* ── Add / Edit Modal ──────────────────────────────────────────────────── */}
       {showAddModal && (
         <AddVehicleModal
-          onClose={() => setShowAddModal(false)}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditVehicleData(null);
+          }}
           dispatch={dispatch}
           loading={loading}
+          editData={editVehicleData}
         />
       )}
 
@@ -597,7 +675,7 @@ export default function Vehicles() {
         <DeleteVehicleModal
           vehicle={showDeleteModal}
           onConfirm={() => {
-            dispatch(deleteVehicle(showDeleteModal.id));
+            dispatch(deleteVehicle(showDeleteModal.id || showDeleteModal._id));
             setShowDeleteModal(null);
           }}
           onCancel={() => setShowDeleteModal(null)}

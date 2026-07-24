@@ -1,17 +1,36 @@
 import { useState } from "react";
-import { createVehicle } from "../Redux/Thunks/vehicle.thunks";
+import { createVehicle, updateVehicle } from "../Redux/Thunks/vehicle.thunks";
 import CustomDropdown from "../shared/CustomDropdown";
-import { MdClose, MdCheck, MdDirectionsCar } from "react-icons/md";
+import { 
+  MdClose, MdCheck, 
+  MdDirectionsCar, MdLocalShipping, MdDirectionsBus, MdTwoWheeler,
+  MdAirportShuttle, MdDirectionsBike, MdAgriculture, MdRvHookup,
+  MdPrecisionManufacturing, MdMedicalServices, MdLocalFireDepartment,
+  MdLocalPolice, MdDirectionsBoat, MdFlight, MdElectricScooter, MdToys
+} from "react-icons/md";
+import { GiDeliveryDrone, GiHelicopter, GiPoliceCar } from "react-icons/gi";
+import { TbCarSuv } from "react-icons/tb";
+import { FaTruckPickup } from "react-icons/fa";
 
-const TYPE_ICON = { truck: MdDirectionsCar, van: MdDirectionsCar, bike: MdDirectionsCar, shuttle: MdDirectionsCar };
-const TYPE_LABEL = { truck: "Heavy Truck", van: "Delivery Van", bike: "Delivery Bike", shuttle: "Passenger Shuttle" };
+import { VEHICLE_TYPES, TYPE_ICON } from "../utils/constants";
 
-export default function AddVehicleModal({ onClose, dispatch, loading }) {
-  const [form, setForm] = useState({ name: "", type: "truck", vehicleNumber: "", chassisNumber: "" });
-  const [files, setFiles] = useState({ registrationImage: null, rcImage: null, insuranceImage: null, pollutionImage: null });
-  
+export default function AddVehicleModal({ onClose, dispatch, loading, editData }) {
+  const [form, setForm] = useState({
+    name: editData?.name || "",
+    type: editData?.type || "truck",
+    vehicleNumber: editData?.vehicleNumber || "",
+    chassisNumber: editData?.chassisNumber || "",
+  });
+  const [files, setFiles] = useState({
+    registrationImage: null,
+    rcImage: null,
+    insuranceImage: null,
+    pollutionImage: null,
+  });
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  const setFile = (k) => (e) => setFiles((f) => ({ ...f, [k]: e.target.files[0] }));
+  const setFile = (k) => (e) =>
+    setFiles((f) => ({ ...f, [k]: e.target.files[0] }));
 
   const handleSubmit = () => {
     const formData = new FormData();
@@ -19,84 +38,138 @@ export default function AddVehicleModal({ onClose, dispatch, loading }) {
     Object.keys(files).forEach((k) => {
       if (files[k]) formData.append(k, files[k]);
     });
-    dispatch(createVehicle(formData));
+    if (editData) {
+      dispatch(updateVehicle({ id: editData.id || editData._id, formData }));
+    } else {
+      dispatch(createVehicle(formData));
+    }
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm z-50" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm z-50"
+        onClick={onClose}
+      />
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-        <div className="rounded-2xl w-full max-w-3xl bg-white border border-[#111827]/10 shadow-[0_32px_64px_rgba(0,0,0,0.15)] pointer-events-auto">
-
+        <div className="rounded-2xl w-full max-w-3xl h-[600px] max-h-[90vh] flex flex-col overflow-hidden bg-white border border-[#111827]/10 shadow-[0_32px_64px_rgba(0,0,0,0.15)] pointer-events-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-[#111827]/6">
+          <div className="flex items-center justify-between p-5 border-b border-[#111827]/6 shrink-0">
             <div>
-              <h3 className="text-[15px] font-black text-[#111827]">Add New Vehicle</h3>
-              <p className="text-[11px] text-[#111827]/35 mt-0.5">Register a new vehicle to the fleet</p>
+              <h3 className="text-[15px] font-black text-[#111827]">
+                {editData ? "Edit Vehicle" : "Add New Vehicle"}
+              </h3>
+              <p className="text-[11px] text-[#111827]/35 mt-0.5">
+                {editData ? "Update vehicle details" : "Register a new vehicle to the fleet"}
+              </p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 transition-colors cursor-pointer">
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 transition-colors cursor-pointer"
+            >
               <MdClose size={17} />
             </button>
           </div>
 
           {/* Form */}
-          <div className="p-5 flex flex-col gap-4">
+          <div className="p-5 flex flex-col gap-4 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <ModalField label="Vehicle Name"    placeholder="e.g. Truck Alpha"  value={form.name}      onChange={set("name")} />
+              <ModalField
+                label="Vehicle Name"
+                placeholder="e.g. Truck Alpha"
+                value={form.name}
+                onChange={set("name")}
+                required
+              />
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">Vehicle Type</label>
+                <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+                  Vehicle Type <span className="text-red-500 ml-0.5">*</span>
+                </label>
                 <CustomDropdown
                   value={form.type}
-                  onChange={(val) => setForm(f => ({ ...f, type: val }))}
-                  options={Object.entries(TYPE_LABEL).map(([val, label]) => ({ value: val, label }))}
+                  onChange={(val) => setForm((f) => ({ ...f, type: val }))}
+                  options={VEHICLE_TYPES}
                   icon={TYPE_ICON[form.type] || MdDirectionsCar}
                   className="h-9"
                   dropdownClassName="max-h-60 overflow-y-auto"
                 />
               </div>
-              <ModalField label="Vehicle Number"  placeholder="e.g. MH 01 AB 1234" value={form.vehicleNumber} onChange={set("vehicleNumber")} mono />
-              <ModalField label="Chassis Number"  placeholder="17-digit Chassis No" value={form.chassisNumber} onChange={set("chassisNumber")} mono />
+              <ModalField
+                label="Vehicle Number"
+                placeholder="e.g. MH 01 AB 1234"
+                value={form.vehicleNumber}
+                onChange={set("vehicleNumber")}
+                mono
+                required
+              />
+              <ModalField
+                label="Chassis Number"
+                placeholder="17-digit Chassis No"
+                value={form.chassisNumber}
+                onChange={set("chassisNumber")}
+                mono
+              />
             </div>
 
             {/* Document Uploads */}
             <div>
-              <h4 className="text-[12px] font-bold text-[#111827]/70 mb-2 border-b border-[#111827]/10 pb-1">Vehicle Documents</h4>
+              <h4 className="text-[12px] font-bold text-[#111827]/70 mb-2 border-b border-[#111827]/10 pb-1">
+                Vehicle Documents
+              </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <ModalFileField 
-                  label="Registration" 
+                <ModalFileField
+                  label="Registration"
                   file={files.registrationImage}
-                  onChange={setFile("registrationImage")} 
-                  onRemove={() => setFiles(f => ({ ...f, registrationImage: null }))}
+                  onChange={setFile("registrationImage")}
+                  onRemove={() =>
+                    setFiles((f) => ({ ...f, registrationImage: null }))
+                  }
+                  required={!editData}
                 />
-                <ModalFileField 
-                  label="RC Document"  
+                <ModalFileField
+                  label="RC Document"
                   file={files.rcImage}
-                  onChange={setFile("rcImage")} 
-                  onRemove={() => setFiles(f => ({ ...f, rcImage: null }))}
+                  onChange={setFile("rcImage")}
+                  onRemove={() => setFiles((f) => ({ ...f, rcImage: null }))}
+                  required={!editData}
                 />
-                <ModalFileField 
-                  label="Insurance"    
+                <ModalFileField
+                  label="Insurance"
                   file={files.insuranceImage}
-                  onChange={setFile("insuranceImage")} 
-                  onRemove={() => setFiles(f => ({ ...f, insuranceImage: null }))}
+                  onChange={setFile("insuranceImage")}
+                  onRemove={() =>
+                    setFiles((f) => ({ ...f, insuranceImage: null }))
+                  }
+                  required={!editData}
                 />
-                <ModalFileField 
-                  label="Pollution"    
+                <ModalFileField
+                  label="Pollution"
                   file={files.pollutionImage}
-                  onChange={setFile("pollutionImage")} 
-                  onRemove={() => setFiles(f => ({ ...f, pollutionImage: null }))}
+                  onChange={setFile("pollutionImage")}
+                  onRemove={() =>
+                    setFiles((f) => ({ ...f, pollutionImage: null }))
+                  }
+                  required={!editData}
                 />
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-5 border-t border-[#111827]/6">
-            <button onClick={onClose} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/70 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all cursor-pointer">
+          <div className="flex items-center justify-end gap-3 p-5 border-t border-[#111827]/6 shrink-0">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/70 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all cursor-pointer"
+            >
               Cancel
             </button>
-            <button disabled={loading} onClick={handleSubmit} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-bold bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/35 transition-shadow disabled:opacity-50 cursor-pointer">
-              <MdCheck size={14} /> {loading ? "Registering..." : "Register Vehicle"}
+            <button
+              disabled={loading}
+              onClick={handleSubmit}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-bold bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/35 transition-shadow disabled:opacity-50 cursor-pointer"
+            >
+              <MdCheck size={14} />{" "}
+              {loading ? (editData ? "Saving..." : "Registering...") : (editData ? "Save Changes" : "Register Vehicle")}
             </button>
           </div>
         </div>
@@ -105,14 +178,19 @@ export default function AddVehicleModal({ onClose, dispatch, loading }) {
   );
 }
 
-function ModalFileField({ label, file, onChange, onRemove }) {
+function ModalFileField({ label, file, onChange, onRemove, required }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">{label}</label>
+      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
       {file ? (
         <div className="flex items-center justify-between h-9 px-2.5 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20">
-          <span className="text-[11px] font-bold text-[#D4AF37] truncate pr-2">{file.name}</span>
-          <button 
+          <span className="text-[11px] font-bold text-[#D4AF37] truncate pr-2">
+            {file.name}
+          </span>
+          <button
             onClick={onRemove}
             className="text-red-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center w-5 h-5 bg-red-400/10 rounded cursor-pointer"
             title="Remove file"
@@ -129,8 +207,12 @@ function ModalFileField({ label, file, onChange, onRemove }) {
             title="Choose file"
           />
           <div className="flex items-center gap-2 w-full pointer-events-none">
-            <span className="py-1 px-2.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-bold">Choose File</span>
-            <span className="text-[11px] text-[#111827]/50 truncate">No file chosen</span>
+            <span className="py-1 px-2.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-bold">
+              Choose File
+            </span>
+            <span className="text-[11px] text-[#111827]/50 truncate">
+              No file chosen
+            </span>
           </div>
         </div>
       )}
@@ -138,12 +220,17 @@ function ModalFileField({ label, file, onChange, onRemove }) {
   );
 }
 
-function ModalField({ label, placeholder, value, onChange, mono }) {
+function ModalField({ label, placeholder, value, onChange, mono, required }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">{label}</label>
-      <div className={`flex items-center h-9 px-3 rounded-lg bg-[#111827]/5 border transition-all ${focused ? "border-[#D4AF37]/40 shadow-[0_0_0_3px_rgba(212,175,55,0.06)]" : "border-[#111827]/8"}`}>
+      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <div
+        className={`flex items-center h-9 px-3 rounded-lg bg-[#111827]/5 border transition-all ${focused ? "border-[#D4AF37]/40 shadow-[0_0_0_3px_rgba(212,175,55,0.06)]" : "border-[#111827]/8"}`}
+      >
         <input
           type="text"
           placeholder={placeholder}

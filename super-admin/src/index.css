@@ -1,1 +1,59 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Fleet Management — Global Stylesheet
+   Tailwind CSS v4 · CSS-first configuration
+───────────────────────────────────────────────────────────────────────────── */
+
+
+/* ── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap");
+
+
 @import "tailwindcss";
+
+
+/* ── Tailwind v4: Design Token Registration (@theme) ─────────────────────── */
+@theme {
+  /* Fonts */
+  --font-sans: "Google Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Brand Colors */
+  --color-brand-dark:    #0C0D0D;
+  --color-brand-green:   #19C853;
+  --color-brand-light:   #EDECF1;
+  --color-brand-surface: #FFFFFF;
+}
+
+/* GLOBAL SCROLLBAR HIDE */
+
+/* Chrome, Safari, Edge */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE/Edge legacy */
+* {
+  -ms-overflow-style: none;
+}
+
+/* Sonner Customizations */
+[data-sonner-toast] [data-close-button] {
+  top: 20px !important;
+  right: 0px !important;
+  left: auto !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ba1616 !important;
+  background-color: #fff !important;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+}

@@ -35,11 +35,13 @@ import {
   MdShield,
   MdChevronLeft,
   MdChevronRight,
+  MdCalendarMonth,
 } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Pagination from "../../shared/Pagination";
 import CustomDropdown from "../../shared/CustomDropdown";
+import ScheduleModal from "../../modals/ScheduleModal";
 
 
 const STATUS_MAP = {
@@ -71,6 +73,7 @@ export default function DriverManagement() {
   const [editDriverData, setEditDriverData] = useState(null);
   const [deleteModal,    setDeleteModal]    = useState(null);
   const [blockModal,     setBlockModal]     = useState(null);   // { driver, action: 'suspend'|'activate' }
+  const [showScheduleModal, setShowScheduleModal] = useState(null);
   const [currentPage,    setCurrentPage]    = useState(1);
   const itemsPerPage = 10;
 
@@ -454,6 +457,10 @@ export default function DriverManagement() {
                                 setShowAddModal(true);
                                 setOpenMenu(null);
                               }}
+                              onSchedule={() => {
+                                setShowScheduleModal(d);
+                                setOpenMenu(null);
+                              }}
                               onToggleStatus={() => {
                                 setBlockModal({ driver: d, action: d.status === "active" ? "suspend" : "activate" });
                                 setOpenMenu(null);
@@ -516,6 +523,14 @@ export default function DriverManagement() {
         />
       )}
 
+      {/* ── Schedule Modal ────────────────────────────────────────── */}
+      {showScheduleModal && (
+        <ScheduleModal
+          driver={showScheduleModal}
+          onClose={() => setShowScheduleModal(null)}
+        />
+      )}
+
       {/* Close menus on outside click */}
       {openMenu && <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />}
     </div>
@@ -523,7 +538,7 @@ export default function DriverManagement() {
 }
 
 /* ── Driver Action Menu ───────────────────────────────────────────────────── */
-function DriverActionMenu({ driver, onView, onEdit, onToggleStatus, onDelete }) {
+function DriverActionMenu({ driver, onView, onEdit, onSchedule, onToggleStatus, onDelete }) {
   const isSuspended = driver.status !== "active";
   return (
     <div className="absolute right-0 top-8 z-30 w-48 rounded-xl overflow-hidden bg-white/65 backdrop-blur-md border border-[#111827]/10 shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
@@ -541,6 +556,14 @@ function DriverActionMenu({ driver, onView, onEdit, onToggleStatus, onDelete }) 
       >
         <MdVisibility size={14} className="text-[#D4AF37]" />
         <span className="text-[#111827]/60">View Details</span>
+      </button>
+
+      <button
+        onMouseDown={onSchedule}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] hover:bg-[#111827]/5 transition-colors text-left"
+      >
+        <MdCalendarMonth size={14} className="text-[#D4AF37]" />
+        <span className="text-[#111827]/60">See Schedule</span>
       </button>
 
       <button

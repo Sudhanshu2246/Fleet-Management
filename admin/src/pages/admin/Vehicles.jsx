@@ -9,6 +9,7 @@ import {
 import VehicleDrawer from "../../modals/VehicleDrawer";
 import AddVehicleModal from "../../modals/AddVehicleModal";
 import DeleteVehicleModal from "../../modals/DeleteVehicleModal";
+import ScheduleModal from "../../modals/ScheduleModal";
 import { clearVehicleState } from "../../Redux/Slices/vehicle.slices";
 import Pagination from "../../shared/Pagination";
 import CustomDropdown from "../../shared/CustomDropdown";
@@ -46,6 +47,7 @@ import {
   MdFlight,
   MdToys,
   MdElectricScooter,
+  MdCalendarMonth,
 } from "react-icons/md";
 
 /* ── Status / type maps ──────────────────────────────────────────────────── */
@@ -137,6 +139,7 @@ export default function Vehicles() {
   const [editVehicleData, setEditVehicleData] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -616,6 +619,10 @@ export default function Vehicles() {
                                 setSelectedVehicle(v);
                                 setOpenMenu(null);
                               }}
+                              onSchedule={() => {
+                                setShowScheduleModal(v);
+                                setOpenMenu(null);
+                              }}
                               onEdit={() => {
                                 setEditVehicleData(v);
                                 setShowAddModal(true);
@@ -681,6 +688,14 @@ export default function Vehicles() {
           onCancel={() => setShowDeleteModal(null)}
         />
       )}
+
+      {/* ── Schedule Modal ────────────────────────────────────────── */}
+      {showScheduleModal && (
+        <ScheduleModal
+          vehicle={showScheduleModal}
+          onClose={() => setShowScheduleModal(null)}
+        />
+      )}
     </div>
   );
 }
@@ -706,7 +721,7 @@ function BatteryCell({ value }) {
 }
 
 /* ── Action Menu ──────────────────────────────────────────────────────────── */
-function ActionMenu({ vehicle, onView, onEdit, onDelete, onClose }) {
+function ActionMenu({ vehicle, onView, onSchedule, onEdit, onDelete, onClose }) {
   const [rect, setRect] = useState(null);
 
   useEffect(() => {
@@ -752,6 +767,12 @@ function ActionMenu({ vehicle, onView, onEdit, onDelete, onClose }) {
             icon: MdHistory,
             label: "Trip History",
             action: onView,
+            colorCls: "text-[#D4AF37]",
+          },
+          {
+            icon: MdCalendarMonth,
+            label: "See Schedule",
+            action: onSchedule,
             colorCls: "text-[#D4AF37]",
           },
           {

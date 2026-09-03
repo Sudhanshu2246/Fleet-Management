@@ -22,6 +22,13 @@ export default function HomeScreen() {
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
   const [routeDist, setRouteDist] = useState<string>('--');
   const [routeDur, setRouteDur] = useState<string>('--');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await dispatch(fetchDashboardDataThunk());
+    setRefreshing(false);
+  }, [dispatch]);
   
   // Dynamic map points from Redux
   const startLat = trip?.sourceLat || assignment?.tripFromLat || 22.9734;
@@ -153,8 +160,12 @@ export default function HomeScreen() {
   `;
 
   return (
-    <AnimatedTabScreen style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+    <AnimatedTabScreen 
+      style={styles.container}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
+      contentContainerStyle={{ paddingBottom: 20 }}
+    >
         {/* Blocking Location Modal */}
         <Modal visible={!locationPermissionGranted} animationType="fade" transparent>
           <View style={styles.permissionModal}>
@@ -324,7 +335,6 @@ export default function HomeScreen() {
         </View>
       )}
 
-      </ScrollView>
     </AnimatedTabScreen>
   );
 }

@@ -10,12 +10,14 @@ const driverRoutes = require("../drivers/routes/driver.route");
 const alertRoutes = require("../alert/routes/alert.route");
 const tripRoutes = require("../trip/routes/trip.routes");
 const organizationRoutes = require("../organization/routes/organization.route");
+const driverProfileRoutes = require("../drivers/routes/driver-profile.route");
 
 // ------------------ Normal Protected Routes ------------------
 router.use("/auth", authRoutes);
 router.use("/organizations", organizationRoutes);
 router.use("/vehicles", vehicleRoutes);
 router.use("/drivers", driverRoutes);
+router.use("/driver-profile", driverProfileRoutes);
 router.use("/alerts", alertRoutes);
 router.use("/trips", tripRoutes);
 

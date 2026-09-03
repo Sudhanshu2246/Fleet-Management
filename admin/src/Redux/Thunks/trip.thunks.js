@@ -4,9 +4,10 @@ import api from "../../api/axios";
 // ================= GET ALL TRIPS =================
 export const getAllTrips = createAsyncThunk(
   "trip/getAllTrips",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const res = await api.get("/trips/all?limit=50");
+      const limit = params?.limit || 50;
+      const res = await api.get(`/trips/all?limit=${limit}`);
       return res.data;
     } catch (error) {
       return rejectWithValue(

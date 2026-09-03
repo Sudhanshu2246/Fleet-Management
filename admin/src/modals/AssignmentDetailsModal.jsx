@@ -79,7 +79,7 @@ export default function AssignmentDetailsModal({ assignment, onClose }) {
                 <span className="text-sm font-semibold text-gray-900">{assignment.tripTo}</span>
               </div>
               <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-gray-500">
-                <MdCalendarToday size={14} /> Started: {new Date(assignment.tripStartDate).toLocaleString()}
+                <MdCalendarToday size={14} /> Started: {new Date(assignment.tripStartDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
             </div>
 

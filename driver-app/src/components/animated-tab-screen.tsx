@@ -1,8 +1,21 @@
 import React, { useCallback, useState, useEffect } from 'react';
+import { ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, withTiming, Easing, useSharedValue } from 'react-native-reanimated';
 
-export default function AnimatedTabScreen({ children, style }: { children: React.ReactNode, style?: any }) {
+export default function AnimatedTabScreen({ 
+  children, 
+  style,
+  onRefresh,
+  refreshing = false,
+  contentContainerStyle,
+}: { 
+  children: React.ReactNode, 
+  style?: any,
+  onRefresh?: () => void,
+  refreshing?: boolean,
+  contentContainerStyle?: any,
+}) {
   const [isFocused, setIsFocused] = useState(false);
   
   useFocusEffect(
@@ -45,9 +58,22 @@ export default function AnimatedTabScreen({ children, style }: { children: React
     };
   }, [isFocused]);
 
+  const content = onRefresh ? (
+    <ScrollView
+      contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4AF37']} />
+      }
+    >
+      {children}
+    </ScrollView>
+  ) : (
+    children
+  );
+
   return (
     <Animated.View style={[{ flex: 1, backgroundColor: '#F3F4F6' }, animatedStyle, style]}>
-      {children}
+      {content}
     </Animated.View>
   );
 }

@@ -492,7 +492,7 @@ exports.getDriverDashboard = async (req, res) => {
       where: {
         driverId,
         organizationId,
-        status: "active",
+        status: ["active", "ongoing"],
       },
       order: [["createdAt", "DESC"]],
       include: [
@@ -504,9 +504,13 @@ exports.getDriverDashboard = async (req, res) => {
     });
 
     if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        message: "No active assignment found for this driver",
+      return res.status(200).json({
+        success: true,
+        data: {
+          assignment: null,
+          trip: null,
+          vehicle: null
+        }
       });
     }
 
@@ -515,7 +519,7 @@ exports.getDriverDashboard = async (req, res) => {
       where: {
         driverId,
         vehicleId: assignment.vehicleId,
-        status: ["ongoing", "scheduled"],
+        status: ["assigned", "ongoing", "scheduled"],
       },
       order: [["createdAt", "DESC"]],
       include: [

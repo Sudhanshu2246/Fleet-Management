@@ -2,11 +2,15 @@ import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import authReducer from './slices/authSlice';
 import dashboardReducer from './slices/dashboardSlice';
+import profileReducer from './slices/profileSlice';
+import documentsReducer from './slices/documentsSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     dashboard: dashboardReducer,
+    profile: profileReducer,
+    documents: documentsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

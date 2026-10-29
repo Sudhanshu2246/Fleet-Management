@@ -402,7 +402,11 @@ exports.getDriverById = async (req, res) => {
             {
               model: Vehicle,
               as: "AssignedVehicle",
-              attributes: ["id", "vehicleNumber", "name", "type", "status"]
+              attributes: [
+                "id", "vehicleNumber", "name", "type", "status",
+                "speed", "battery", "locationLat", "locationLng",
+                "locationAddress", "lastSeen"
+              ]
             }
           ]
         }
@@ -416,9 +420,21 @@ exports.getDriverById = async (req, res) => {
       });
     }
 
+    // Also fetch active trip if any
+    const activeTrip = await Trip.findOne({
+      where: {
+        driverId: driver.id,
+        status: ["assigned", "ongoing", "scheduled"],
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    const driverData = driver.toJSON();
+    driverData.activeTrip = activeTrip || null;
+
     res.status(200).json({
       success: true,
-      data: driver,
+      data: driverData,
     });
   } catch (error) {
     res.status(500).json({
@@ -563,3 +579,193 @@ exports.getDriverDashboard = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+// ─── UPDATE DRIVER LOCATION (FROM DRIVER APP) ────────────────
+exports.updateDriverLocation = async (req, res) => {
+  try {
+    const { latitude, longitude, speed = 0, heading = 0, address = null } = req.body;
+
+    if (latitude === undefined || longitude === undefined || isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid numeric latitude and longitude are required",
+      });
+    }
+
+    const userId = req.user.id;
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const spd = Math.max(0, parseFloat(speed) || 0);
+    const hdg = parseFloat(heading) || 0;
+
+    // Find or create Driver record
+    let driverProfile = await Driver.findOne({ where: { userId } });
+    if (!driverProfile) {
+      driverProfile = await Driver.create({
+        userId,
+        isLoggedIn: true,
+        isActive: true,
+      });
+    }
+
+    // Update driver profile with live location
+    await driverProfile.update({
+      isLoggedIn: true,
+      currentLat: lat,
+      currentLng: lng,
+      currentSpeed: spd,
+      heading: hdg,
+      locationAddress: address || driverProfile.locationAddress,
+      lastLocationUpdate: new Date(),
+    });
+
+    // Also update assigned Vehicle if any
+    let vehicle = null;
+    if (driverProfile.vehicleAssignedId) {
+      vehicle = await Vehicle.findOne({ where: { id: driverProfile.vehicleAssignedId } });
+      if (vehicle) {
+        await vehicle.update({
+          locationLat: lat,
+          locationLng: lng,
+          speed: spd,
+          locationAddress: address || vehicle.locationAddress,
+          status: "active",
+          lastSeen: new Date(),
+        });
+      }
+    }
+
+    // Also update active Trip path if any
+    let activeTrip = await Trip.findOne({
+      where: {
+        driverId: userId,
+        status: ["assigned", "ongoing"],
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (activeTrip) {
+      const currentPath = Array.isArray(activeTrip.path) ? [...activeTrip.path] : [];
+      currentPath.push({
+        latitude: lat,
+        longitude: lng,
+        speed: spd,
+        heading: hdg,
+        timestamp: new Date(),
+      });
+      await activeTrip.update({
+        path: currentPath,
+        status: activeTrip.status === "assigned" ? "ongoing" : activeTrip.status,
+      });
+    }
+
+    // Ingest into Redis tracking pipeline for sub-millisecond retrieval and geospatial indexing
+    try {
+      const orgId = req.user.organizationId || req.user.organization;
+      if (orgId) {
+        const { recordTelemetry } = require("../../tracking/services/tracking.service");
+        recordTelemetry({
+          organizationId: orgId,
+          vehicleId: driverProfile.vehicleAssignedId || null,
+          driverId: userId,
+          tripId: activeTrip ? activeTrip.tripId : null,
+          latitude: lat,
+          longitude: lng,
+          speed: spd,
+          heading: hdg,
+          address: address || vehicle?.locationAddress || driverProfile.locationAddress,
+        }).catch((err) => console.warn("Redis telemetry ingest warning:", err.message));
+      }
+    } catch (redisTrackErr) {
+      // Non-blocking
+    }
+
+    // Broadcast live telemetry via Socket.io if initialized
+    try {
+      const { getIO } = require("../../socket");
+      const io = getIO();
+      if (io) {
+        io.emit("driver:location:changed", {
+          driverId: userId,
+          driverName: `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim(),
+          vehicleId: driverProfile.vehicleAssignedId,
+          latitude: lat,
+          longitude: lng,
+          speed: spd,
+          heading: hdg,
+          address: address || vehicle?.locationAddress || null,
+          timestamp: new Date(),
+        });
+
+        if (activeTrip) {
+          io.to(`trip_${activeTrip.tripId}`).emit("location:changed", {
+            tripId: activeTrip.tripId,
+            latitude: lat,
+            longitude: lng,
+            speed: spd,
+            heading: hdg,
+          });
+        }
+      }
+    } catch (sockErr) {
+      // Socket may not be initialized; ignore safely
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Driver location updated successfully",
+      data: {
+        driverId: userId,
+        latitude: lat,
+        longitude: lng,
+        speed: spd,
+        heading: hdg,
+        address: address || driverProfile.locationAddress,
+        vehicleAssignedId: driverProfile.vehicleAssignedId,
+        lastLocationUpdate: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("Update Driver Location Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update driver location",
+    });
+  }
+};
+
+// ─── GET LOGGED IN DRIVERS ──────────────────────────────────
+exports.getLoggedInDrivers = async (req, res) => {
+  try {
+    const orgId = req.user.organizationId || req.user.organization;
+    const { getLoggedInDriversWithTelemetry } = require("../../tracking/services/tracking.service");
+    const result = await getLoggedInDriversWithTelemetry(orgId);
+
+    const formattedDrivers = result.drivers.map((d) => ({
+      ...d,
+      lat: d.telemetry.latitude,
+      lng: d.telemetry.longitude,
+      speed: d.telemetry.speed,
+      heading: d.telemetry.heading,
+      address: d.telemetry.address,
+      lastLocationUpdate: d.telemetry.lastLocationUpdate,
+      lastLogin: d.driverProfile?.lastLogin,
+      isCurrentlyStopped: d.stoppage?.isCurrentlyStopped,
+      stopDurationSeconds: d.stoppage?.currentStopDurationSeconds,
+      stopDurationFormatted: d.stoppage?.currentStopDurationFormatted,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedDrivers.length,
+      data: formattedDrivers,
+    });
+  } catch (error) {
+    console.error("Get Logged In Drivers Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch logged-in drivers",
+    });
+  }
+};
+

@@ -106,6 +106,16 @@ const Trip = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    stops: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "Array of completed stop records with stoppedAt, resumedAt, duration, and coordinates",
+    },
+    totalStopTime: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+      comment: "Total stopped duration in seconds",
+    },
   },
   {
     timestamps: true,

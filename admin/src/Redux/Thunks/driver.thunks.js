@@ -105,3 +105,19 @@ export const deleteDriver = createAsyncThunk(
     }
   }
 );
+
+// ================= GET LOGGED IN DRIVERS =================
+export const getLoggedInDrivers = createAsyncThunk(
+  "driver/getLoggedInDrivers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/drivers/logged-in");
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to fetch logged-in drivers" }
+      );
+    }
+  }
+);
+

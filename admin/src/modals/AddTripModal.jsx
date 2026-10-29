@@ -239,7 +239,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-[#0C0D0D]/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-[#0C0D0D]/80 backdrop-blur-md"
         />
 
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
@@ -247,18 +247,18 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="rounded-3xl w-full max-w-4xl bg-white backdrop-blur-none border border-[#111827]/10 shadow-[0_24px_80px_rgba(0,0,0,0.15)] pointer-events-auto overflow-y-auto md:overflow-hidden flex flex-col md:flex-row h-[600px] max-h-[90vh]"
+            className="rounded-3xl w-full max-w-4xl bg-[#151D2C] backdrop-blur-none border border-slate-800 shadow-[0_24px_80px_rgba(0,0,0,0.5)] pointer-events-auto overflow-y-auto md:overflow-hidden flex flex-col md:flex-row h-[600px] max-h-[90vh]"
           >
             {/* Left Side: Summary Card */}
-            <div className="hidden md:flex w-80 bg-white border-r border-[#111827]/5 p-8 flex-col justify-between relative">
+            <div className="hidden md:flex w-80 bg-[#1E293B]/60 border-r border-slate-800 p-8 flex-col justify-between relative">
               <div>
-                <h3 className="text-xl font-black text-[#111827] flex items-center gap-2 mb-2">
+                <h3 className="text-xl font-black text-white flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center">
                     <MdAssignment size={18} className="text-[#D4AF37]" />
                   </div>
                   {editData ? "Update Booking" : "New Booking"}
                 </h3>
-                <p className="text-xs text-[#111827]/40 leading-relaxed">
+                <p className="text-xs text-slate-400 leading-relaxed">
                   {editData
                     ? "Modify the trip requirements and dates."
                     : "Provide the basic trip requirements. Vehicles and drivers will be assigned later."}
@@ -268,25 +268,25 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
               {/* Live Card Preview */}
               <div className="relative group mt-10">
                 <div className="absolute -inset-1 bg-[#D4AF37] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                <div className="relative bg-white rounded-2xl p-4 border border-[#111827]/10">
+                <div className="relative bg-[#151D2C] rounded-2xl p-4 border border-slate-700/60 shadow-lg">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br bg-[#D4AF37] flex items-center justify-center text-sm font-black text-white">
                       T
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-[#111827] truncate w-32 uppercase">
+                      <div className="text-xs font-bold text-white truncate w-32 uppercase">
                         {form.tripType.replace("-", " ")}
                       </div>
-                      <div className="text-[10px] text-[#D4AF37]/70 font-mono">
+                      <div className="text-[10px] text-[#D4AF37]/90 font-mono">
                         {form.vehicleTypeRequired || "ANY VEHICLE"}
                       </div>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="h-1 w-full bg-[#111827]/5 rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
                       <div className="h-full bg-[#D4AF37] w-full" />
                     </div>
-                    <div className="flex justify-between text-[9px] font-bold text-[#111827]/30 uppercase tracking-tighter">
+                    <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
                       <span>
                         {form.tripType === "multi-city"
                           ? `${form.multiCityLegs.length} Legs`
@@ -302,12 +302,12 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
             </div>
 
             {/* Right Side: Form Content */}
-            <div className="flex-1 flex flex-col bg-[#F8FAFC] md:overflow-hidden">
+            <div className="flex-1 flex flex-col bg-[#151D2C] md:overflow-hidden">
               {/* Header inside right side for mobile close */}
               <div className="md:hidden flex justify-end p-4">
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-full bg-gray-100 text-gray-500"
+                  className="p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white"
                 >
                   <MdClose size={20} />
                 </button>
@@ -316,11 +316,11 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
               <div className="flex-1 p-8 md:overflow-y-auto [scrollbar-width:thin]">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-lg font-black text-[#111827]">
+                    <h4 className="text-lg font-black text-white">
                       {editData ? "Trip Details" : "Trip Requirements"}
                     </h4>
                     {!editData && (
-                      <p className="text-xs text-[#111827]/50 mt-1">
+                      <p className="text-xs text-slate-400 mt-1">
                         Define the type of trip and required vehicle.
                       </p>
                     )}
@@ -328,7 +328,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
 
                   <div className="grid grid-cols-2 gap-5">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                         Trip Type <span className="text-red-500 ml-0.5">*</span>
                       </label>
                       <CustomDropdown
@@ -339,7 +339,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                         Req. Vehicle Type{" "}
                         <span className="text-red-500 ml-0.5">*</span>
                       </label>
@@ -360,7 +360,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
                     </div>
                   </div>
 
-                  <hr className="border-[#111827]/5 my-6" />
+                  <hr className="border-slate-800 my-6" />
 
                   {/* Routing Section based on Trip Type */}
                   {(form.tripType === "one-way" ||
@@ -452,7 +452,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
                       {form.multiCityLegs.map((leg, index) => (
                         <div
                           key={index}
-                          className="p-4 bg-white border border-[#111827]/5 rounded-xl space-y-4 shadow-sm relative"
+                          className="p-4 bg-[#1E293B]/60 border border-slate-700/60 rounded-xl space-y-4 shadow-sm relative"
                         >
                           <h5 className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest">
                             Leg {index + 1}
@@ -460,7 +460,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
                           {form.multiCityLegs.length > 2 && (
                             <button
                               onClick={() => removeLeg(index)}
-                              className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors"
+                              className="absolute top-4 right-4 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
                             >
                               <MdDelete size={16} />
                             </button>
@@ -521,7 +521,7 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
 
                       <button
                         onClick={addLeg}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#D4AF37]/50 text-[#D4AF37] rounded-lg text-xs font-bold hover:bg-[#D4AF37]/5 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1E293B] border border-[#D4AF37]/50 text-[#D4AF37] rounded-lg text-xs font-bold hover:bg-[#D4AF37]/10 transition-colors cursor-pointer"
                       >
                         <MdAdd size={16} /> Add Leg
                       </button>
@@ -531,20 +531,20 @@ export default function AddTripModal({ isOpen, onClose, editData }) {
               </div>
 
               {/* Footer Actions */}
-              <div className="shrink-0 p-6 bg-white border-t border-[#111827]/5 flex justify-between items-center">
+              <div className="shrink-0 p-6 bg-[#1E293B]/40 border-t border-slate-800 flex justify-between items-center">
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-[#111827]/50 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleContinue}
                   disabled={loading}
-                  className="px-8 py-2.5 rounded-xl text-sm font-bold text-[#111827] bg-[#D4AF37] hover:bg-[#C4A030] transition-all shadow-[0_4px_14px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.6)] flex items-center justify-center min-w-[140px] disabled:opacity-70 disabled:pointer-events-none"
+                  className="px-8 py-2.5 rounded-xl text-sm font-bold text-white bg-[#D4AF37] hover:bg-[#C4A030] transition-all shadow-[0_4px_14px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.6)] flex items-center justify-center min-w-[140px] disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-[#111827]/30 border-t-[#111827] rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : editData ? (
                     "Update Booking"
                   ) : (

@@ -10,8 +10,11 @@ services:
     environment:
       - NODE_ENV=production
       - MONGO_URI=mongodb://mongodb:27017/FleetManagement
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - mongodb
+      - redis
 
   admin:
     build: ./admin
@@ -19,6 +22,14 @@ services:
       - "3000:80"
     depends_on:
       - api
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
 
   mongodb:
     image: mongo:latest
@@ -29,3 +40,4 @@ services:
 
 volumes:
   mongo-data:
+  redis-data:

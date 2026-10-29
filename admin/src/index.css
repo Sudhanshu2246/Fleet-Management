@@ -1,37 +1,27 @@
-/* ─────────────────────────────────────────────────────────────────────────────
-   Fleet Management — Global Stylesheet
-   Tailwind CSS v4 · CSS-first configuration
-───────────────────────────────────────────────────────────────────────────── */
-
-
-/* ── Google Fonts ─────────────────────────────────────────────────────────── */
 @import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap");
-
 
 @import "tailwindcss";
 
-
-/* ── Tailwind v4: Design Token Registration (@theme) ─────────────────────── */
 @theme {
-  /* Fonts */
   --font-sans: "Google Sans", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   /* Brand Colors */
-  --color-brand-dark:    #0C0D0D;
+  --color-brand-dark:    #0B0F17;
   --color-brand-green:   #19C853;
-  --color-brand-light:   #EDECF1;
-  --color-brand-surface: #FFFFFF;
+  --color-brand-light:   #1E293B;
+  --color-brand-surface: #151D2C;
 }
 
-/* GLOBAL SCROLLBAR HIDE */
+body {
+  background-color: #0B0F17;
+  color: #F1F5F9;
+  font-family: var(--font-sans);
+}
 
-/* Chrome, Safari, Edge */
 *::-webkit-scrollbar {
   display: none;
 }
-
-/* Firefox */
 * {
   scrollbar-width: none;
 }
@@ -39,6 +29,60 @@
 /* IE/Edge legacy */
 * {
   -ms-overflow-style: none;
+}
+
+/* Leaflet Dark Theme Overrides */
+.leaflet-container {
+  background-color: #0B0F17 !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* OpenStreetMap Free Dark Mode Filter — Zero watermarks, Zero API key */
+.dark-mode-tiles img.leaflet-tile,
+img.leaflet-tile.dark-mode-tiles,
+.leaflet-layer.dark-mode-tiles {
+  filter: brightness(0.62) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.28) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #151D2C !important;
+  color: #F1F5F9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7) !important;
+}
+
+.leaflet-popup-close-button {
+  color: #94A3B8 !important;
+  padding: 6px !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #FFFFFF !important;
+}
+
+.fleet-custom-popup .leaflet-popup-content-wrapper {
+  padding: 2px !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  background: #151D2C !important;
+}
+
+.fleet-custom-popup .leaflet-popup-content {
+  margin: 8px 10px !important;
+  line-height: 1.4;
+}
+
+.fleet-custom-popup .leaflet-popup-tip {
+  background: #151D2C !important;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.driver-marker-div,
+.pin-marker-div {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Sonner Customizations */
@@ -49,7 +93,7 @@
   background: transparent !important;
   border: none !important;
   color: #ba1616 !important;
-  background-color: #fff !important;
+  background-color: #1E293B !important;
   opacity: 0.8;
   transition: opacity 0.2s;
 }

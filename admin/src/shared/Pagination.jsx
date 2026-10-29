@@ -30,16 +30,16 @@ export default function Pagination({ currentPage, totalItems, itemsPerPage, onPa
   }
 
   return (
-    <div className="flex items-center justify-between px-5 py-3 border-t border-[#111827]/10 bg-white/50 backdrop-blur-sm">
-      <div className="text-xs text-[#111827]/60 font-medium">
-        Showing <span className="font-bold text-[#111827]">{Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)}</span> to <span className="font-bold text-[#111827]">{Math.min(totalItems, currentPage * itemsPerPage)}</span> of <span className="font-bold text-[#111827]">{totalItems}</span> entries
+    <div className="flex items-center justify-between px-5 py-3 border-t border-slate-800 bg-[#0F172A]/70 backdrop-blur-sm">
+      <div className="text-xs text-slate-400 font-medium">
+        Showing <span className="font-bold text-white">{Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)}</span> to <span className="font-bold text-white">{Math.min(totalItems, currentPage * itemsPerPage)}</span> of <span className="font-bold text-white">{totalItems}</span> entries
       </div>
       
       <div className="flex items-center gap-1">
         <button
           onClick={handlePrev}
           disabled={currentPage === 1}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-[#111827]/50 hover:bg-[#111827]/5 hover:text-[#111827] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <MdChevronLeft size={20} />
         </button>
@@ -48,11 +48,11 @@ export default function Pagination({ currentPage, totalItems, itemsPerPage, onPa
           <>
             <button
               onClick={() => onPageChange(1)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-[#111827]/60 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
             >
               1
             </button>
-            {startPage > 2 && <span className="px-1 text-[#111827]/40 text-xs">...</span>}
+            {startPage > 2 && <span className="px-1 text-slate-500 text-xs">...</span>}
           </>
         )}
 
@@ -62,8 +62,8 @@ export default function Pagination({ currentPage, totalItems, itemsPerPage, onPa
             onClick={() => onPageChange(p)}
             className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ${
               currentPage === p
-                ? "bg-[#D4AF37] text-white shadow-md shadow-[#D4AF37]/20"
-                : "text-[#111827]/60 hover:bg-[#111827]/5 hover:text-[#111827]"
+                ? "bg-[#D4AF37] text-slate-950 font-black shadow-md shadow-[#D4AF37]/25"
+                : "text-slate-400 hover:bg-slate-800 hover:text-white"
             }`}
           >
             {p}
@@ -72,10 +72,10 @@ export default function Pagination({ currentPage, totalItems, itemsPerPage, onPa
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && <span className="px-1 text-[#111827]/40 text-xs">...</span>}
+            {endPage < totalPages - 1 && <span className="px-1 text-slate-500 text-xs">...</span>}
             <button
               onClick={() => onPageChange(totalPages)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-[#111827]/60 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
             >
               {totalPages}
             </button>
@@ -85,7 +85,7 @@ export default function Pagination({ currentPage, totalItems, itemsPerPage, onPa
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-[#111827]/50 hover:bg-[#111827]/5 hover:text-[#111827] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800/80 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <MdChevronRight size={20} />
         </button>

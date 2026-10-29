@@ -22,7 +22,7 @@ import {
   MdPerson,
 } from "react-icons/md";
 import { RiSignalTowerFill } from "react-icons/ri";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 // Base route for the admin dashboard area
 const DASH = "/dashboard";
@@ -65,7 +65,9 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
   const [hoveredItem, setHoveredItem] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+  const isSettingsActive = location.pathname.startsWith(`${DASH}/settings`);
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -86,8 +88,8 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
     <aside
       className={`
         fixed top-0 left-0 h-screen z-50 flex flex-col
-        bg-[#F0F4F8] border-r border-[#111827]/10
-        shadow-[4px_0_24px_rgba(0,0,0,0.1)]
+        bg-[#0F172A] border-r border-[#1E293B]
+        shadow-[4px_0_24px_rgba(0,0,0,0.4)]
         transition-all duration-300 ease-in-out
         w-[260px] ${collapsed ? 'md:w-[72px]' : 'md:w-[260px]'}
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
@@ -97,12 +99,12 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
       <div
         className={`
           flex items-center shrink-0 overflow-hidden h-16
-          border-b border-[#111827]/10
+          border-b border-[#1E293B]
           ${collapsed ? "px-4.5" : "px-5.5"}
         `}
       >
         <div className="flex items-center justify-center shrink-0 w-9 h-9 rounded-lg bg-[#D4AF37] shadow-[0_4px_14px_rgba(212,175,55,0.35)]">
-          <MdGpsFixed className="text-[#111827]" size={20} />
+          <MdGpsFixed className="text-[#0B0F17]" size={20} />
         </div>
 
         <div
@@ -111,7 +113,7 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
             ${collapsed ? "opacity-100 w-auto md:opacity-0 md:w-0" : "opacity-100 w-auto"}
           `}
         >
-          <p className="text-[15px] font-bold tracking-tight leading-none text-[#111827] m-0">
+          <p className="text-[15px] font-bold tracking-tight leading-none text-white m-0">
             Fleet<span className="text-[#D4AF37]">IQ</span>
           </p>
           <p className="text-xs mt-0.5 text-[#D4AF37] font-semibold tracking-[0.08em] m-0">
@@ -137,7 +139,7 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
           items-center justify-center
           w-6.5 h-6.5 rounded-full
           bg-[#D4AF37]
-          border-2 border-[#111827] text-[#111827] cursor-pointer
+          border-2 border-[#0F172A] text-[#0B0F17] cursor-pointer
           shadow-[0_2px_8px_rgba(212,175,55,0.4)]
           hover:scale-110 transition-transform duration-200
         "
@@ -146,15 +148,14 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
       </button>
 
       {/* ── Live Status Strip ─────────────────────────── */}
-      {/* ── Live Status Strip ─────────────────────────── */}
-      <div className={`mx-3 mt-3 shrink-0 rounded-lg items-center gap-2 px-3 py-2.5 bg-[#D4AF37]/[0.07] border border-[#D4AF37]/20 ${collapsed ? "flex md:hidden" : "flex"}`}>
+      <div className={`mx-3 mt-3 shrink-0 rounded-lg items-center gap-2 px-3 py-2.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 ${collapsed ? "flex md:hidden" : "flex"}`}>
         <RiSignalTowerFill className="text-[#D4AF37] shrink-0" size={16} />
         <div>
           <p className="text-xs font-semibold text-[#D4AF37] m-0">WebSocket Active</p>
-          <p className="text-xs text-[#111827]/50 m-0">3,842 devices online</p>
+          <p className="text-xs text-slate-400 m-0">3,842 devices online</p>
         </div>
         <div className="ml-auto">
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30">
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30">
             LIVE
           </span>
         </div>
@@ -164,11 +165,11 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
       <nav className="flex-1 overflow-y-auto py-3 [scrollbar-width:none]">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="mb-1">
-            <p className={`px-4 py-2 text-[10px] font-semibold tracking-[0.12em] text-[#111827]/60 uppercase m-0 ${collapsed ? "block md:hidden" : "block"}`}>
+            <p className={`px-4 py-2 text-[10px] font-semibold tracking-[0.12em] text-slate-500 uppercase m-0 ${collapsed ? "block md:hidden" : "block"}`}>
               {group.label}
             </p>
             {collapsed && (
-              <div className="hidden md:block my-1 mx-4 h-px bg-[#111827]/10" />
+              <div className="hidden md:block my-1 mx-4 h-px bg-[#1E293B]" />
             )}
 
             {group.items.map((item) => {
@@ -194,9 +195,9 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
                     transition-all duration-150 cursor-pointer no-underline
                     ${collapsed ? "justify-start md:justify-center py-2.5 md:py-2.75 px-4 md:px-0" : "px-4 py-2.5"}
                     ${isActive
-                      ? "bg-[#D4AF37]/10"
+                      ? "bg-[#D4AF37]/15"
                       : isHovered
-                        ? "bg-white/65 backdrop-blur-md/4"
+                        ? "bg-slate-800/60"
                         : "bg-transparent"
                     }
                   `}
@@ -208,14 +209,14 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
                       )}
 
                       <span className={`shrink-0 flex items-center justify-center transition-colors duration-150
-                        ${isActive ? "text-[#D4AF37]" : isHovered ? "text-[#111827]" : "text-[#111827]/40"}
+                        ${isActive ? "text-[#D4AF37]" : isHovered ? "text-white" : "text-slate-400"}
                       `}>
                         <Icon size={20} />
                       </span>
 
                       <span className={`text-sm font-medium truncate flex-1 text-left transition-colors duration-150
                         ${collapsed ? "block md:hidden" : "block"}
-                        ${isActive ? "text-[#111827]" : isHovered ? "text-[#111827]" : "text-[#111827]/40"}
+                        ${isActive ? "text-[#D4AF37] font-semibold" : isHovered ? "text-white" : "text-slate-400"}
                       `}>
                         {item.label}
                       </span>
@@ -241,41 +242,54 @@ export default function Sidebar({ collapsed, onCollapseToggle, mobileOpen, onMob
       </nav>
 
       {/* ── Bottom: Settings + User ───────────────────── */}
-      <div className="shrink-0 border-t border-[#111827]/10">
+      <div className="shrink-0 border-t border-[#1E293B]">
         <button
+          onClick={() => {
+            if (onMobileClose && window.innerWidth < 768) {
+              onMobileClose();
+            }
+            navigate(`${DASH}/settings`);
+          }}
           className={`
             w-full flex items-center gap-3
-            hover:bg-white/65 backdrop-blur-md/5 text-[#111827]/50 cursor-pointer
-            bg-transparent border-none transition-colors duration-150
+            cursor-pointer border-none transition-colors duration-150
             ${collapsed ? "justify-start md:justify-center py-3 md:py-3.5 px-5.5 md:px-0" : "px-5.5 py-3"}
+            ${
+              isSettingsActive
+                ? "bg-[#D4AF37]/15 text-[#D4AF37]"
+                : "bg-transparent hover:bg-slate-800/60 text-slate-400 hover:text-white"
+            }
           `}
+          title={collapsed ? "Settings" : ""}
         >
-          <MdSettings size={20} />
-          <span className={`text-sm ${collapsed ? "inline md:hidden" : "inline"}`}>Settings</span>
+          <MdSettings size={20} className={isSettingsActive ? "text-[#D4AF37]" : ""} />
+          <span className={`text-sm ${collapsed ? "inline md:hidden" : "inline"} ${isSettingsActive ? "font-semibold text-[#D4AF37]" : ""}`}>
+            Settings
+          </span>
         </button>
 
         <div
           onClick={() => navigate(`${DASH}/my-profile`)}
           className={`
-            flex items-center gap-2.5 cursor-pointer hover:bg-black/5 transition-colors
-            bg-white/65 backdrop-blur-md/2.5 border-t border-[#111827]/10
+            flex items-center gap-2.5 cursor-pointer hover:bg-slate-800/40 transition-colors
+            bg-[#0B0F17]/60 border-t border-[#1E293B]
             ${collapsed ? "justify-start md:justify-center py-3.5 px-4 md:px-0" : "px-4 py-3.5"}
           `}
         >
-          <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[#111827] text-sm bg-[#D4AF37] ring-2 ring-[#D4AF37]/25">
+          <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[#0B0F17] text-sm bg-[#D4AF37] ring-2 ring-[#D4AF37]/30">
             {getInitials(user?.name)}
           </div>
 
           <div className={`flex-1 min-w-0 ${collapsed ? "block md:hidden" : "block"}`}>
-            <p className="text-sm font-semibold truncate text-[#111827] m-0">{user?.name || "Admin User"}</p>
-            <p className="text-xs truncate text-[#111827]/50 m-0">{user?.email || "admin@fleetiq.io"}</p>
+            <p className="text-sm font-semibold truncate text-white m-0">{user?.name || "Admin User"}</p>
+            <p className="text-xs truncate text-slate-400 m-0">{user?.email || "admin@fleetiq.io"}</p>
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleLogout();
             }}
-            className={`shrink-0 p-1.5 rounded-lg hover:bg-white/65 backdrop-blur-md/10 text-[#111827]/50 cursor-pointer border-none bg-transparent transition-colors ${collapsed ? "block md:hidden" : "block"}`}
+            className={`shrink-0 p-1.5 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-white cursor-pointer border-none bg-transparent transition-colors ${collapsed ? "block md:hidden" : "block"}`}
             title="Logout"
           >
             <MdLogout size={16} />

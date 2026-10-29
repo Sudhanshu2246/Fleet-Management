@@ -77,17 +77,17 @@ export default function CustomCalendar({
   return (
     <div className={`relative flex flex-col gap-2 ${className}`} ref={containerRef}>
       {label && (
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
       )}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center h-11 px-4 rounded-xl bg-white/65 backdrop-blur-md border transition-all duration-300 cursor-pointer ${isOpen ? "border-[#D4AF37] bg-white shadow-[0_0_15px_rgba(212,175,55,0.1)]" : "border-[#111827]/10 hover:border-[#111827]/20"}`}
+        className={`flex items-center h-11 px-4 rounded-xl bg-slate-900/70 backdrop-blur-md border transition-all duration-300 cursor-pointer ${isOpen ? "border-[#D4AF37] bg-slate-900 shadow-[0_0_15px_rgba(212,175,55,0.2)]" : "border-slate-700/60 hover:border-slate-600"}`}
       >
-        <Icon size={16} className={`mr-3 transition-colors ${isOpen ? "text-[#D4AF37]" : "text-gray-400"}`} />
-        <span className={`flex-1 text-[13px] ${displayValue() ? "text-gray-800" : "text-gray-400"}`}>
+        <Icon size={16} className={`mr-3 transition-colors ${isOpen ? "text-[#D4AF37]" : "text-slate-400"}`} />
+        <span className={`flex-1 text-[13px] ${displayValue() ? "text-slate-200" : "text-slate-500"}`}>
           {displayValue() || placeholder}
         </span>
       </div>
@@ -99,7 +99,7 @@ export default function CustomCalendar({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-2 bg-white backdrop-blur-xl border border-[#111827]/10 rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.12)] p-4 w-72"
+            className="absolute z-50 mt-2 bg-[#1E293B] backdrop-blur-xl border border-slate-700 rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-4 w-72 text-white"
             style={{ top: "100%", left: 0 }}
           >
             {/* Header */}
@@ -107,25 +107,25 @@ export default function CustomCalendar({
               <button 
                 onClick={prevMonth} 
                 disabled={disablePast && currentYear === today.getFullYear() && currentMonth <= today.getMonth()}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer ${disablePast && currentYear === today.getFullYear() && currentMonth <= today.getMonth() ? "text-gray-300 cursor-not-allowed" : "hover:bg-[#111827]/5 text-gray-500"}`}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer ${disablePast && currentYear === today.getFullYear() && currentMonth <= today.getMonth() ? "text-slate-600 cursor-not-allowed" : "hover:bg-slate-800 text-slate-300"}`}
               >
                 <MdChevronLeft size={20} />
               </button>
               <div className="flex gap-2 items-center relative">
                 <div
                   onClick={() => setActiveSelector(activeSelector === 'month' ? null : 'month')}
-                  className="bg-transparent border-none outline-none text-[13px] font-bold text-gray-800 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-md"
+                  className="bg-transparent border-none outline-none text-[13px] font-bold text-slate-200 cursor-pointer hover:bg-slate-800 px-2 py-1 rounded-md"
                 >
                   {MONTHS[currentMonth]}
                 </div>
                 <div
                   onClick={() => setActiveSelector(activeSelector === 'year' ? null : 'year')}
-                  className="bg-transparent border-none outline-none text-[13px] font-bold text-gray-800 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-md"
+                  className="bg-transparent border-none outline-none text-[13px] font-bold text-slate-200 cursor-pointer hover:bg-slate-800 px-2 py-1 rounded-md"
                 >
                   {currentYear}
                 </div>
               </div>
-              <button onClick={nextMonth} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#111827]/5 text-gray-500 cursor-pointer">
+              <button onClick={nextMonth} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 text-slate-300 cursor-pointer">
                 <MdChevronRight size={20} />
               </button>
             </div>
@@ -143,7 +143,7 @@ export default function CustomCalendar({
                         setCurrentDate(new Date(currentYear, i, 1));
                         setActiveSelector(null);
                       }}
-                      className={`p-2 rounded-lg text-[12px] font-bold ${isDisabled ? "text-gray-300 cursor-not-allowed" : currentMonth === i ? "bg-[#D4AF37] text-white" : "hover:bg-gray-100 text-gray-700 cursor-pointer"}`}
+                      className={`p-2 rounded-lg text-[12px] font-bold ${isDisabled ? "text-slate-600 cursor-not-allowed" : currentMonth === i ? "bg-[#D4AF37] text-slate-950" : "hover:bg-slate-800 text-slate-300 cursor-pointer"}`}
                     >
                       {m.substring(0, 3)}
                     </button>
@@ -161,7 +161,7 @@ export default function CustomCalendar({
                         setCurrentDate(new Date(y, currentMonth, 1));
                         setActiveSelector(null);
                       }}
-                      className={`p-2 rounded-lg text-[12px] font-bold ${currentYear === y ? "bg-[#D4AF37] text-white" : "hover:bg-gray-100 text-gray-700 cursor-pointer"}`}
+                      className={`p-2 rounded-lg text-[12px] font-bold ${currentYear === y ? "bg-[#D4AF37] text-slate-950" : "hover:bg-slate-800 text-slate-300 cursor-pointer"}`}
                     >
                       {y}
                     </button>
@@ -173,7 +173,7 @@ export default function CustomCalendar({
                 {/* Days Header */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {DAYS.map(d => (
-                    <div key={d} className="text-center text-[10px] font-bold text-gray-400">
+                    <div key={d} className="text-center text-[10px] font-bold text-slate-400">
                       {d}
                     </div>
                   ))}
@@ -206,10 +206,10 @@ export default function CustomCalendar({
                         }}
                         disabled={isPast}
                         className={`w-8 h-8 rounded-lg text-[12px] flex items-center justify-center transition-colors 
-                          ${isPast ? "text-gray-300 cursor-not-allowed" : "cursor-pointer"}
-                          ${isSelected ? "bg-[#D4AF37] text-white font-bold shadow-md shadow-[#D4AF37]/30" : 
-                            isToday && !isSelected ? "bg-[#111827]/5 text-[#111827] font-bold" : 
-                            !isPast && !isSelected ? "text-gray-600 hover:bg-[#111827]/5 hover:text-gray-900" : ""}
+                          ${isPast ? "text-slate-600 cursor-not-allowed" : "cursor-pointer"}
+                          ${isSelected ? "bg-[#D4AF37] text-slate-950 font-black shadow-md shadow-[#D4AF37]/30" : 
+                            isToday && !isSelected ? "bg-slate-800 text-[#D4AF37] font-bold border border-[#D4AF37]/30" : 
+                            !isPast && !isSelected ? "text-slate-300 hover:bg-slate-800 hover:text-white" : ""}
                         `}
                       >
                         {d}

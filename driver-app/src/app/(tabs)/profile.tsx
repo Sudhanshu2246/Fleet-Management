@@ -23,6 +23,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { logout } from "../../store/slices/authSlice";
+import { driverLogoutThunk } from "../../store/thunks/authThunks";
 import {
   fetchDriverProfileThunk,
   updateDriverProfileThunk,
@@ -94,9 +95,13 @@ export default function ProfileScreen() {
     setRefreshing(false);
   }, [dispatch]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    router.replace("/(auth)/login");
+  const handleLogout = async () => {
+    try {
+      await dispatch(driverLogoutThunk());
+    } finally {
+      dispatch(logout());
+      router.replace("/(auth)/login");
+    }
   };
 
   const pickImage = (field: keyof typeof newImages) => {

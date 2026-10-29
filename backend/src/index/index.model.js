@@ -4,8 +4,12 @@ const Vehicle = require("../vehical/models/vehicle.model");
 const Alert = require("../alert/models/alert.model");
 const Driver = require("../drivers/models/driver.model");
 const Trip = require("../trip/models/trip.model");
+const TripHistory = require("../trip/models/tripHistory.model");
 const SuperAdmin = require("../Super-Admin/models/superAdmin.model");
 const VehicleAssignment = require("../vehical/models/vehicleAssignment.model");
+const Geofence = require("../geofence/models/geofence.model");
+const AuditLog = require("../security/models/auditLog.model");
+const FleetSettings = require("../organization/models/fleetSettings.model");
 
 // Users and Organizations
 User.belongsTo(Organization, { foreignKey: "organizationId" });
@@ -39,6 +43,14 @@ Vehicle.hasMany(Trip, { foreignKey: "vehicleId" });
 Trip.belongsTo(User, { foreignKey: "driverId" });
 User.hasMany(Trip, { foreignKey: "driverId" });
 
+// Trip History Associations
+TripHistory.belongsTo(Organization, { foreignKey: "organizationId" });
+Organization.hasMany(TripHistory, { foreignKey: "organizationId" });
+TripHistory.belongsTo(User, { foreignKey: "driverId", as: "DriverUser" });
+User.hasMany(TripHistory, { foreignKey: "driverId" });
+TripHistory.belongsTo(Vehicle, { foreignKey: "vehicleId" });
+Vehicle.hasMany(TripHistory, { foreignKey: "vehicleId" });
+
 // Vehicle Assignments
 VehicleAssignment.belongsTo(Organization, { foreignKey: "organizationId" });
 Organization.hasMany(VehicleAssignment, { foreignKey: "organizationId" });
@@ -54,6 +66,10 @@ module.exports = {
   Alert,
   Driver,
   Trip,
+  TripHistory,
   SuperAdmin,
   VehicleAssignment,
+  Geofence,
+  AuditLog,
+  FleetSettings,
 };

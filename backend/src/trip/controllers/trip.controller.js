@@ -122,6 +122,25 @@ exports.endTrip = async (req, res) => {
     );
 
     await transaction.commit();
+
+    // Finalize Redis live trip breadcrumbs into DB and clean up memory
+    try {
+      const { finalizeTripTrail, recordTripHistory } = require("../../tracking/services/tracking.service");
+      await finalizeTripTrail(trip.tripId);
+      await recordTripHistory({
+        tripId: trip.tripId,
+        organizationId: trip.organizationId,
+        endTime: new Date(),
+        status: "completed",
+        distanceTravelled: finalMetrics.distance,
+        maxSpeed: finalMetrics.maxSpeed,
+        averageSpeed: finalMetrics.averageSpeed,
+        durationSeconds: finalMetrics.duration,
+      });
+    } catch (e) {
+      console.warn("Trip history auto-archive warning:", e.message);
+    }
+
     const updatedTrip = await Trip.findByPk(trip.id);
 
     res.status(200).json({

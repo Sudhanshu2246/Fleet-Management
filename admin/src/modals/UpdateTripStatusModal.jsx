@@ -56,15 +56,15 @@ export default function UpdateTripStatusModal({ isOpen, onClose, trip }) {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden pointer-events-auto"
+              className="bg-[#151D2C] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden pointer-events-auto"
             >
-              <div className="flex items-center justify-between p-5 border-b border-[#111827]/5">
-                <h2 className="text-lg font-bold text-[#111827]">
+              <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-[#151D2C]">
+                <h2 className="text-lg font-bold text-white">
                   Update Status
                 </h2>
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#111827]/5 text-[#111827]/40 hover:text-[#111827] transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <MdClose size={20} />
                 </button>
@@ -72,7 +72,7 @@ export default function UpdateTripStatusModal({ isOpen, onClose, trip }) {
 
               <form onSubmit={handleSubmit} className="p-5">
                 <div className="mb-6">
-                  <p className="text-xs font-semibold text-[#111827]/50 mb-3 uppercase tracking-wider">
+                  <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
                     Select New Status
                   </p>
                   <div className="flex flex-col gap-2">
@@ -81,10 +81,10 @@ export default function UpdateTripStatusModal({ isOpen, onClose, trip }) {
                         key={opt.value}
                         type="button"
                         onClick={() => setStatus(opt.value)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all cursor-pointer ${
                           status === opt.value
-                            ? "border-[#111827] bg-[#111827]/5"
-                            : "border-transparent hover:bg-[#111827]/5"
+                            ? "border-[#D4AF37] bg-[#D4AF37]/10"
+                            : "border-slate-800/80 hover:bg-slate-800/50"
                         }`}
                       >
                         <span
@@ -92,7 +92,7 @@ export default function UpdateTripStatusModal({ isOpen, onClose, trip }) {
                         >
                           {opt.label}
                         </span>
-                        {status === opt.value && <MdCheck size={18} className="text-[#111827]" />}
+                        {status === opt.value && <MdCheck size={18} className="text-[#D4AF37]" />}
                       </button>
                     ))}
                   </div>
@@ -102,14 +102,14 @@ export default function UpdateTripStatusModal({ isOpen, onClose, trip }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-[#111827]/70 hover:bg-[#111827]/5 transition-colors"
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || status === trip?.status}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#111827] hover:bg-[#111827]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#D4AF37] hover:bg-[#c49f2e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-[#D4AF37]/20"
                   >
                     {isSubmitting ? "Updating..." : "Save Changes"}
                   </button>

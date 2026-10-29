@@ -8,6 +8,7 @@ import { WebView } from 'react-native-webview';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { fetchDashboardDataThunk } from '../../store/thunks/dashboardThunks';
+import { sendDriverLocationUpdate } from '../../store/thunks/authThunks';
 import AnimatedTabScreen from '@/components/animated-tab-screen';
 
 export default function HomeScreen() {
@@ -16,7 +17,9 @@ export default function HomeScreen() {
   const isMapDark = scheme === 'dark'; 
 
   const dispatch = useDispatch<AppDispatch>();
+  const authToken = useSelector((state: RootState) => state.auth.token);
   const { assignment, trip, vehicle, loading } = useSelector((state: RootState) => state.dashboard);
+  const lastSentLocationRef = React.useRef<number>(0);
 
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
@@ -52,6 +55,8 @@ export default function HomeScreen() {
   const [distance, setDistance] = useState(trip?.distanceTravelled || 0);
   
   useEffect(() => {
+    let locationSub: Location.LocationSubscription | null = null;
+
     (async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -70,13 +75,36 @@ export default function HomeScreen() {
 
         let location = await Location.getCurrentPositionAsync({});
         setCurrentLocation(location);
+
+        // Share initial location if driver is logged in
+        if (authToken && location?.coords) {
+          sendDriverLocationUpdate(authToken, {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speed: Math.round((location.coords.speed || 0) * 3.6),
+            heading: location.coords.heading || 0,
+          });
+          lastSentLocationRef.current = Date.now();
+        }
         
-        // Keep tracking location
-        Location.watchPositionAsync(
+        // Keep watching and streaming location
+        locationSub = await Location.watchPositionAsync(
           { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 10 },
           (newLoc) => {
             setCurrentLocation(newLoc);
             setSpeed(Math.round((newLoc.coords.speed || 0) * 2.23694)); // m/s to mph
+
+            // Send live coordinates only when driver is logged in
+            const now = Date.now();
+            if (authToken && (now - lastSentLocationRef.current > 6000)) {
+              lastSentLocationRef.current = now;
+              sendDriverLocationUpdate(authToken, {
+                latitude: newLoc.coords.latitude,
+                longitude: newLoc.coords.longitude,
+                speed: Math.round((newLoc.coords.speed || 0) * 3.6),
+                heading: newLoc.coords.heading || 0,
+              });
+            }
           }
         );
       } catch (error) {
@@ -87,7 +115,13 @@ export default function HomeScreen() {
 
     // Fetch dynamic dashboard data
     dispatch(fetchDashboardDataThunk());
-  }, [dispatch]);
+
+    return () => {
+      if (locationSub) {
+        locationSub.remove();
+      }
+    };
+  }, [dispatch, authToken]);
 
   const mapHtml = `
     <!DOCTYPE html>

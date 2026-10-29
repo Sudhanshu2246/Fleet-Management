@@ -16,11 +16,15 @@ const startServer = async () => {
     // Connect DB
     await connectDB();
 
+    // Connect Redis
+    const { initRedis } = require("./config/redis");
+    initRedis();
+
     const { sequelize } = require("./config/db");
     require("./index/index.model");
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true }); // Automatically creates/alters tables to match models
 
-    console.log("✅Database Models Synced");
+    console.log("✅ Database Models Synced");
 
     // Create HTTP server
     const http = require("http");

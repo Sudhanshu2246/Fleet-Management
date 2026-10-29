@@ -93,14 +93,58 @@ exports.login = async (req, res) => {
 // ─── LOGOUT ───────────────────────────────
 exports.logout = async (req, res) => {
   try {
+    if (req.user && req.user.role === "driver") {
+      await Driver.update(
+        { isLoggedIn: false },
+        { where: { userId: req.user.id } }
+      );
+      const driverProfile = await Driver.findOne({ where: { userId: req.user.id } });
+      if (driverProfile && driverProfile.vehicleAssignedId) {
+        await Vehicle.update(
+          { status: "idle" },
+          { where: { id: driverProfile.vehicleAssignedId } }
+        );
+      }
+    }
+
     res.status(200).json({
       success: true,
-      message: "Logged out successfully (remove token on client)",
+      message: "Logged out successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Logout failed",
+    });
+  }
+};
+
+// ─── DRIVER APP LOGOUT ─────────────────────
+exports.driverAppLogout = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await Driver.update(
+      { isLoggedIn: false },
+      { where: { userId } }
+    );
+
+    const driverProfile = await Driver.findOne({ where: { userId } });
+    if (driverProfile && driverProfile.vehicleAssignedId) {
+      await Vehicle.update(
+        { status: "idle" },
+        { where: { id: driverProfile.vehicleAssignedId } }
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Driver logged out successfully. Location sharing stopped.",
+    });
+  } catch (error) {
+    console.error("Driver App Logout Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Driver logout failed",
     });
   }
 };
@@ -230,8 +274,31 @@ exports.driverAppLogin = async (req, res) => {
       }
     }
 
-    // Fetch primary driver details
-    const primaryDriverRecord = await Driver.findOne({ where: { userId: user.id } });
+    // Fetch or create primary driver details
+    let primaryDriverRecord = await Driver.findOne({ where: { userId: user.id } });
+
+    if (!primaryDriverRecord) {
+      primaryDriverRecord = await Driver.create({
+        userId: user.id,
+        vehicleAssignedId: vehicle.id,
+        isLoggedIn: true,
+        lastLogin: new Date(),
+        isActive: true,
+      });
+    } else {
+      await primaryDriverRecord.update({
+        vehicleAssignedId: vehicle.id,
+        isLoggedIn: true,
+        lastLogin: new Date(),
+      });
+    }
+
+    // Set assigned vehicle to active
+    await vehicle.update({
+      driverAssignedId: user.id,
+      status: "active",
+      lastSeen: new Date(),
+    });
 
     const token = generateToken(user);
 

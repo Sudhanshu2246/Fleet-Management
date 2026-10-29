@@ -27,7 +27,7 @@ export default function Layout() {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "#F0F4F8",
+        background: "#0B0F17",
       }}
     >
       {/* ── Sidebar (fixed position, outside flow) ──────────────────────── */}

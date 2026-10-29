@@ -6,11 +6,14 @@ import {
   updateDriverStatus,
   updateDriver,
   deleteDriver,
+  getLoggedInDrivers,
 } from "../Thunks/driver.thunks";
 
 const initialState = {
   drivers: [],
+  loggedInDrivers: [],
   loading: false,
+  loadingLoggedIn: false,
   error: null,
   success: false,
 };
@@ -102,6 +105,19 @@ const driverSlice = createSlice({
       .addCase(deleteDriver.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Failed to delete driver";
+      })
+
+      // ================= GET LOGGED IN DRIVERS =================
+      .addCase(getLoggedInDrivers.pending, (state) => {
+        state.loadingLoggedIn = true;
+      })
+      .addCase(getLoggedInDrivers.fulfilled, (state, action) => {
+        state.loadingLoggedIn = false;
+        state.loggedInDrivers = action.payload.data || [];
+      })
+      .addCase(getLoggedInDrivers.rejected, (state, action) => {
+        state.loadingLoggedIn = false;
+        state.error = action.payload?.message || "Failed to fetch logged in drivers";
       });
   },
 });

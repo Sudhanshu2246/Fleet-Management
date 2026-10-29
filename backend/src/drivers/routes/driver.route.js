@@ -9,6 +9,8 @@ const {
   updateDriver,
   deleteDriver,
   getDriverDashboard,
+  updateDriverLocation,
+  getLoggedInDrivers,
 } = require("../controllers/driver.controller");
 const { protect } = require("../../middlewares/auth.middleware");
 const { authorizeRoles } = require("../../middlewares/role.middleware");
@@ -19,8 +21,12 @@ router.use(protect);
 
 router.get("/all-drivers", getDrivers);
 
+// Logged-in drivers sharing live location
+router.get("/logged-in", getLoggedInDrivers);
+
 // Driver App Routes
 router.get("/dashboard", getDriverDashboard);
+router.post("/update-location", updateDriverLocation);
 
 router.post(
   "/register-driver",

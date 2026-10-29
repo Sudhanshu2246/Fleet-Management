@@ -151,20 +151,20 @@ export default function AssignVehicle() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] px-7 py-6 flex flex-col gap-6">
+    <div className="min-h-screen bg-[#0B0F17] px-7 py-6 flex flex-col gap-6">
       {/* ── Breadcrumb + Title ──────────────────────────────────────────── */}
       <div>
         <nav className="flex items-center gap-1.5 mb-2">
           <span className="text-xs font-bold text-[#D4AF37] tracking-wide">FleetTrack Pro</span>
-          <span className="text-xs text-[#111827]/20">/</span>
-          <span className="text-xs text-[#111827]/40">Management</span>
-          <span className="text-xs text-[#111827]/20">/</span>
-          <span className="text-xs text-[#111827]/40">Assign Vehicle</span>
+          <span className="text-xs text-slate-600">/</span>
+          <span className="text-xs text-slate-400">Management</span>
+          <span className="text-xs text-slate-600">/</span>
+          <span className="text-xs text-slate-400">Assign Vehicle</span>
         </nav>
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-2xl font-black text-[#111827] tracking-tight">Assign Vehicle</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">Assign Vehicle</h1>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/80 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 border border-slate-700/60 hover:border-slate-600 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 transition-all">
               <MdDownload size={14} /> Export
             </button>
             <button 
@@ -175,7 +175,7 @@ export default function AssignVehicle() {
                 dispatch(getAllTrips());
                 toast.success("Data refreshed successfully");
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/80 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 border border-slate-700/60 hover:border-slate-600 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 transition-all"
             >
               <MdRefresh size={14} /> Refresh
             </button>
@@ -196,7 +196,7 @@ export default function AssignVehicle() {
           return (
             <div
               key={card.label}
-              className="group relative rounded-xl p-4 border border-[#111827]/6 bg-white/65 backdrop-blur-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
+              className="group relative rounded-xl p-4 border border-slate-800 bg-[#151D2C]/80 backdrop-blur-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${card.bg} ${card.border}`}>
@@ -204,7 +204,7 @@ export default function AssignVehicle() {
                 </div>
                 <div>
                   <div className={`text-2xl font-black leading-none ${card.color}`}>{card.value}</div>
-                  <div className="text-[11px] text-[#111827]/35 mt-0.5">{card.label}</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">{card.label}</div>
                 </div>
               </div>
             </div>
@@ -213,20 +213,20 @@ export default function AssignVehicle() {
       </div>
 
       {/* ── Filters + Search ────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md p-4 flex flex-col gap-4 relative z-20">
+      <div className="rounded-xl border border-slate-800 bg-[#151D2C]/80 backdrop-blur-md p-4 flex flex-col gap-4 relative z-20">
         {/* Top Row: Search */}
         <div className="flex items-center w-full gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg bg-[#111827]/5 border border-[#111827]/8 focus-within:border-[#D4AF37]/40 transition-all">
-          <MdSearch size={15} className="text-[#111827]/30 shrink-0" />
+          <div className="flex items-center gap-2 flex-1 min-w-0 h-9 px-3 rounded-lg bg-slate-900/70 border border-slate-700/60 focus-within:border-[#D4AF37]/50 focus-within:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] transition-all">
+          <MdSearch size={15} className="text-slate-400 shrink-0" />
           <input
             type="text"
             placeholder="Search vehicle, driver, route..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-xs text-[#111827] placeholder:text-[#111827]/25 min-w-0"
+            className="flex-1 bg-transparent border-none outline-none text-xs text-white placeholder:text-slate-500 min-w-0"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="text-[#111827]/30 hover:text-[#111827]/60 transition-colors shrink-0">
+            <button onClick={() => setSearch("")} className="text-slate-400 hover:text-white transition-colors shrink-0">
               <MdClose size={13} />
             </button>
           )}
@@ -235,7 +235,7 @@ export default function AssignVehicle() {
 
         {/* Status filter (Desktop) */}
         <div className="hidden md:flex items-center gap-1 overflow-x-auto hide-scrollbar shrink-0">
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-[#111827]/3 border border-[#111827]/6">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-900/60 border border-slate-700/60">
             {["all", "active", "ongoing", "scheduled", "completed", "cancelled"].map((s) => (
               <button
                 key={s}
@@ -243,7 +243,7 @@ export default function AssignVehicle() {
                 className={`px-3 py-1 rounded-md text-[11px] font-semibold capitalize transition-all whitespace-nowrap ${
                   statusFilter === s
                     ? "bg-[#D4AF37] text-white shadow-sm"
-                    : "text-[#111827]/35 hover:text-[#111827]/60"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 {s === "all" ? "All" : s}
@@ -271,13 +271,13 @@ export default function AssignVehicle() {
       </div>
 
       {/* ── Assignments Table ─────────────────────────────────────────────── */}
-      <div className="relative rounded-xl border border-[#111827]/6 bg-white/65 backdrop-blur-md overflow-hidden flex flex-col">
+      <div className="relative rounded-xl border border-slate-800 bg-[#151D2C]/80 backdrop-blur-md overflow-hidden flex flex-col">
         {canScrollLeft && (
           <button
             onClick={() => scrollTable("left")}
-            className="absolute left-0 top-0 h-[48px] z-10 w-12 flex items-center justify-start pl-2 bg-gradient-to-r from-white via-white/80 to-transparent"
+            className="absolute left-0 top-0 h-[48px] z-10 w-12 flex items-center justify-start pl-2 bg-gradient-to-r from-[#151D2C] via-[#151D2C]/80 to-transparent"
           >
-            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+            <div className="w-6 h-6 rounded-full bg-[#1E293B] shadow-md border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer">
               <MdChevronLeft size={16} />
             </div>
           </button>
@@ -285,9 +285,9 @@ export default function AssignVehicle() {
         {canScrollRight && (
           <button
             onClick={() => scrollTable("right")}
-            className="absolute right-0 top-0 h-[48px] z-10 w-12 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white/80 to-transparent"
+            className="absolute right-0 top-0 h-[48px] z-10 w-12 flex items-center justify-end pr-2 bg-gradient-to-l from-[#151D2C] via-[#151D2C]/80 to-transparent"
           >
-            <div className="w-6 h-6 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-900 cursor-pointer">
+            <div className="w-6 h-6 rounded-full bg-[#1E293B] shadow-md border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer">
               <MdChevronRight size={16} />
             </div>
           </button>
@@ -299,21 +299,21 @@ export default function AssignVehicle() {
         >
           <table className="w-full border-collapse whitespace-nowrap min-w-max">
             <thead>
-              <tr className="border-b border-[#111827]/6">
-                <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Assignment ID</th>
-                <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Vehicle</th>
-                <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Route</th>
-                <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Driver</th>
-                <th className="px-5 py-4 text-left text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Status</th>
-                <th className="px-5 py-4 text-center text-[10px] font-bold text-[#111827]/40 uppercase tracking-widest bg-[#111827]/[0.02]">Actions</th>
+              <tr className="border-b border-slate-800">
+                <th className="px-5 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Assignment ID</th>
+                <th className="px-5 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Vehicle</th>
+                <th className="px-5 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Route</th>
+                <th className="px-5 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Driver</th>
+                <th className="px-5 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Status</th>
+                <th className="px-5 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900/40">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedData.map((a) => (
-                <tr key={a.id} className="border-b border-[#111827]/6 hover:bg-[#111827]/[0.02] transition-colors group">
+                <tr key={a.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition-colors group">
                   <td className="px-5 py-4 align-middle">
-                    <p className="text-xs font-bold text-[#111827]">{a.id}</p>
-                    <p className="text-[10px] text-[#111827]/40 mt-0.5">{new Date(a.tripStartDate).toLocaleDateString()}</p>
+                    <p className="text-xs font-bold text-white font-mono">{a.id}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{new Date(a.tripStartDate).toLocaleDateString()}</p>
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <div className="flex items-center gap-3">
@@ -321,25 +321,25 @@ export default function AssignVehicle() {
                         <MdLocalShipping size={14} className="text-[#D4AF37]" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#111827]">{a.vehicleNumber}</p>
-                        <p className="text-[10px] text-[#111827]/40 capitalize mt-0.5">{a.vehicleType}</p>
+                        <p className="text-xs font-bold text-white font-mono">{a.vehicleNumber}</p>
+                        <p className="text-[10px] text-slate-400 capitalize mt-0.5">{a.vehicleType}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4 align-middle">
-                    <p className="text-xs font-semibold text-[#111827]/70 flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
                       <MdLocationOn size={14} className="text-[#D4AF37]" />
-                      {a.tripFrom} <span className="text-[#111827]/30 mx-1">→</span> {a.tripTo}
+                      {a.tripFrom} <span className="text-slate-500 mx-1">→</span> {a.tripTo}
                     </p>
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#111827]/5 border border-[#111827]/10 flex items-center justify-center text-[10px] font-bold text-[#111827]/60">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-300">
                         {a.driverName.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#111827]">{a.driverName}</p>
-                        <p className="text-[10px] text-[#111827]/40 mt-0.5">{a.driverPhone}</p>
+                        <p className="text-xs font-bold text-white">{a.driverName}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-mono">{a.driverPhone}</p>
                       </div>
                     </div>
                   </td>
@@ -363,7 +363,7 @@ export default function AssignVehicle() {
               {paginatedData.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-5 py-8 text-center">
-                    <p className="text-sm font-semibold text-[#111827]/40">No assignments found.</p>
+                    <p className="text-sm font-semibold text-slate-500">No assignments found.</p>
                   </td>
                 </tr>
               )}
@@ -478,7 +478,7 @@ function ActionMenu({ assignment, onView, onDelete, onTrack, onEdit }) {
     <div className="relative inline-block text-left" ref={menuRef}>
       <button 
         onClick={() => setOpen(!open)}
-        className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto hover:bg-[#111827]/5 text-[#111827]/40 hover:text-[#111827] transition-colors cursor-pointer"
+        className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
       >
         <MdMoreVert size={18} />
       </button>
@@ -491,14 +491,14 @@ function ActionMenu({ assignment, onView, onDelete, onTrack, onEdit }) {
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
             style={{ top: topPos, left: leftPos }}
-            className="fixed w-36 bg-white border border-[#111827]/10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] overflow-hidden py-1 z-[60]"
+            className="fixed w-36 bg-[#1E293B]/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden py-1 z-[60]"
           >
             <button 
               onClick={() => {
                 setOpen(false);
                 if (onView) onView();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-800/80 hover:text-white transition-colors cursor-pointer"
             >
               <MdVisibility size={14} className="text-[#D4AF37]" /> See Details
             </button>
@@ -507,7 +507,7 @@ function ActionMenu({ assignment, onView, onDelete, onTrack, onEdit }) {
                 setOpen(false);
                 if (onTrack) onTrack();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-800/80 hover:text-white transition-colors cursor-pointer"
             >
               <MdLocationOn size={14} className="text-[#D4AF37]" /> Track Trip
             </button>
@@ -516,17 +516,17 @@ function ActionMenu({ assignment, onView, onDelete, onTrack, onEdit }) {
                 setOpen(false);
                 if (onEdit) onEdit();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-800/80 hover:text-white transition-colors cursor-pointer"
             >
-              <MdEdit size={14} className="text-[#111827]/50" /> Edit Trip
+              <MdEdit size={14} className="text-slate-400" /> Edit Trip
             </button>
-            <div className="h-px bg-[#111827]/5 my-1" />
+            <div className="h-px bg-slate-700/60 my-1" />
             <button 
               onClick={() => {
                 setOpen(false);
                 if (onDelete) onDelete();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-4 py-2 text-[11px] font-semibold text-red-400 hover:bg-red-500/15 transition-colors cursor-pointer"
             >
               <MdDelete size={14} className="text-red-400" /> Delete
             </button>

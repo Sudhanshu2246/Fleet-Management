@@ -52,20 +52,20 @@ export default function AddVehicleModal({ onClose, dispatch, loading, editData }
         onClick={onClose}
       />
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-        <div className="rounded-2xl w-full max-w-3xl h-[600px] max-h-[90vh] flex flex-col overflow-hidden bg-white border border-[#111827]/10 shadow-[0_32px_64px_rgba(0,0,0,0.15)] pointer-events-auto">
+        <div className="rounded-2xl w-full max-w-3xl h-[600px] max-h-[90vh] flex flex-col overflow-hidden bg-[#151D2C] border border-slate-800 shadow-[0_32px_64px_rgba(0,0,0,0.6)] pointer-events-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-[#111827]/6 shrink-0">
+          <div className="flex items-center justify-between p-5 border-b border-slate-800 shrink-0">
             <div>
-              <h3 className="text-[15px] font-black text-[#111827]">
+              <h3 className="text-[15px] font-black text-white">
                 {editData ? "Edit Vehicle" : "Add New Vehicle"}
               </h3>
-              <p className="text-[11px] text-[#111827]/35 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 {editData ? "Update vehicle details" : "Register a new vehicle to the fleet"}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#111827]/35 hover:bg-[#111827]/8 transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
             >
               <MdClose size={17} />
             </button>
@@ -82,7 +82,7 @@ export default function AddVehicleModal({ onClose, dispatch, loading, editData }
                 required
               />
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   Vehicle Type <span className="text-red-500 ml-0.5">*</span>
                 </label>
                 <CustomDropdown
@@ -113,7 +113,7 @@ export default function AddVehicleModal({ onClose, dispatch, loading, editData }
 
             {/* Document Uploads */}
             <div>
-              <h4 className="text-[12px] font-bold text-[#111827]/70 mb-2 border-b border-[#111827]/10 pb-1">
+              <h4 className="text-[12px] font-bold text-slate-200 mb-2 border-b border-slate-800 pb-1">
                 Vehicle Documents
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -156,10 +156,10 @@ export default function AddVehicleModal({ onClose, dispatch, loading, editData }
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-5 border-t border-[#111827]/6 shrink-0">
+          <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-800 shrink-0">
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold text-[#111827]/50 border border-[#111827]/10 hover:border-[#111827]/20 hover:text-[#111827]/70 bg-[#111827]/5 hover:bg-[#111827]/10 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold text-slate-300 border border-slate-700/60 hover:border-slate-600 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -181,7 +181,7 @@ export default function AddVehicleModal({ onClose, dispatch, loading, editData }
 function ModalFileField({ label, file, onChange, onRemove, required }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -199,7 +199,7 @@ function ModalFileField({ label, file, onChange, onRemove, required }) {
           </button>
         </div>
       ) : (
-        <div className="relative flex items-center h-9 px-1.5 rounded-lg bg-[#111827]/5 border border-[#111827]/8 transition-all hover:border-[#111827]/20 overflow-hidden cursor-pointer">
+        <div className="relative flex items-center h-9 px-1.5 rounded-lg bg-slate-900/70 border border-slate-700/60 transition-all hover:border-slate-600 overflow-hidden cursor-pointer">
           <input
             type="file"
             onChange={onChange}
@@ -210,7 +210,7 @@ function ModalFileField({ label, file, onChange, onRemove, required }) {
             <span className="py-1 px-2.5 rounded bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-bold">
               Choose File
             </span>
-            <span className="text-[11px] text-[#111827]/50 truncate">
+            <span className="text-[11px] text-slate-400 truncate">
               No file chosen
             </span>
           </div>
@@ -224,12 +224,12 @@ function ModalField({ label, placeholder, value, onChange, mono, required }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-bold text-[#111827]/45 uppercase tracking-wider">
+      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <div
-        className={`flex items-center h-9 px-3 rounded-lg bg-[#111827]/5 border transition-all ${focused ? "border-[#D4AF37]/40 shadow-[0_0_0_3px_rgba(212,175,55,0.06)]" : "border-[#111827]/8"}`}
+        className={`flex items-center h-9 px-3 rounded-lg bg-slate-900/70 border transition-all ${focused ? "border-[#D4AF37]/50 shadow-[0_0_0_3px_rgba(212,175,55,0.1)]" : "border-slate-700/60"}`}
       >
         <input
           type="text"
@@ -238,7 +238,7 @@ function ModalField({ label, placeholder, value, onChange, mono, required }) {
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`flex-1 bg-transparent border-none outline-none text-[13px] text-[#111827] placeholder:text-[#111827]/25 ${mono ? "font-mono" : ""}`}
+          className={`flex-1 bg-transparent border-none outline-none text-[13px] text-white placeholder:text-slate-500 ${mono ? "font-mono" : ""}`}
         />
       </div>
     </div>

@@ -87,6 +87,41 @@ const Driver = sequelize.define("Driver", {
     type: DataTypes.DATE,
     allowNull: true,
   },
+
+  isLoggedIn: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+
+  currentLat: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+  },
+
+  currentLng: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+  },
+
+  currentSpeed: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+
+  heading: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+
+  locationAddress: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+
+  lastLocationUpdate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   timestamps: true,
 });

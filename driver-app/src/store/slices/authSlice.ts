@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { driverLoginThunk } from '../thunks/authThunks';
+import { driverLoginThunk, driverLogoutThunk } from '../thunks/authThunks';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
@@ -46,6 +46,11 @@ const authSlice = createSlice({
       .addCase(driverLoginThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(driverLogoutThunk.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.error = null;
       });
   },
 });

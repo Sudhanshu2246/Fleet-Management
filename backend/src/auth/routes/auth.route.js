@@ -5,6 +5,7 @@ const {
   login,
   driverAppLogin,
   logout,
+  driverAppLogout,
 } = require("../controllers/auth.controller");
 
 const { protect } = require("../../middlewares/auth.middleware");
@@ -21,5 +22,6 @@ router.post("/driver-login", validateDriverLogin, driverAppLogin);
 
 // ─── Protected Routes ─────────────────────
 router.post("/logout", protect, logout);
+router.post("/driver-logout", protect, driverAppLogout);
 
 module.exports = router;

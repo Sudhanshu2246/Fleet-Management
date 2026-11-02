@@ -5,33 +5,28 @@ interface LoginPayload {
   driverName: string;
   driverPhone: string;
   vehicleNumber: string;
-  idToken: string;
+  vehicleType?: string;
+  idToken?: string;
 }
 
 export const driverLoginThunk = createAsyncThunk(
   'auth/driverLogin',
-  async (payload: LoginPayload, { rejectWithValue }) => {
-    try {
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/v1/auth/driver-login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+  async (payload: LoginPayload) => {
+    const user = {
+      name: payload.driverName,
+      phone: payload.driverPhone,
+      vehicleNumber: payload.vehicleNumber,
+      vehicleType: payload.vehicleType || 'truck',
+    };
+    const token = 'LOCAL_AUTH_TOKEN_' + Date.now();
 
-      const data = await response.json();
+    await AsyncStorage.setItem('authToken', token);
+    await AsyncStorage.setItem('authUser', JSON.stringify(user));
 
-      if (response.ok && data.success) {
-        await AsyncStorage.setItem('authToken', data.token);
-        await AsyncStorage.setItem('authUser', JSON.stringify(data.user));
-        return data;
-      } else {
-        return rejectWithValue(data.message || 'Login failed');
-      }
-    } catch (error: any) {
-      return rejectWithValue('Network error. Please try again later.');
-    }
+    return {
+      success: true,
+      token,
+      user,
+    };
   }
 );

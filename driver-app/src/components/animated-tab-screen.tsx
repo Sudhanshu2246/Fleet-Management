@@ -29,40 +29,29 @@ export default function AnimatedTabScreen({
 
   useEffect(() => {
     if (isFocused) {
-      // Start the animation to 1
-      progress.value = withTiming(1, { 
-        duration: 400, 
-        easing: Easing.out(Easing.cubic) 
+      progress.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.quad)
       });
     } else {
-      // Instantly reset when navigating away
       progress.value = 0;
     }
   }, [isFocused]);
 
   const animatedStyle = useAnimatedStyle(() => {
-    // Use isFocused directly in the style block.
-    // This forces the component to render at progress=0 on the EXACT frame it becomes visible,
-    // completely eliminating the 1-frame flash/blink.
-    const currentProgress = isFocused ? progress.value : 0;
+    const currentProgress = isFocused ? progress.value : 1;
     
     return {
-      // Start at 0.8 opacity so the screen is never blank (prevents the "blink" feeling)
-      opacity: 0.8 + (currentProgress * 0.2),
-      transform: [
-        { 
-          // Subtle slide in from 35 pixels
-          translateX: (1 - currentProgress) * 35 
-        }
-      ],
+      opacity: currentProgress,
     };
   }, [isFocused]);
 
   const content = onRefresh ? (
     <ScrollView
       contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
+      showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4AF37']} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#B7F34A']} tintColor="#B7F34A" />
       }
     >
       {children}
@@ -72,7 +61,7 @@ export default function AnimatedTabScreen({
   );
 
   return (
-    <Animated.View style={[{ flex: 1, backgroundColor: '#F3F4F6' }, animatedStyle, style]}>
+    <Animated.View style={[{ flex: 1, backgroundColor: '#101211' }, animatedStyle, style]}>
       {content}
     </Animated.View>
   );

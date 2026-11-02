@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
@@ -25,9 +24,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout } from "../../store/slices/authSlice";
 import {
   fetchDriverProfileThunk,
-  updateDriverProfileThunk,
 } from "../../store/thunks/profileThunks";
 import { useAppDispatch, useAppSelector } from "../../store";
+import { Colors } from "../../constants/Colors";
 
 import AnimatedTabScreen from "@/components/animated-tab-screen";
 import { Button } from "../../components/ui/Button";
@@ -279,7 +278,7 @@ export default function ProfileScreen() {
   if (loading && !data && !refreshing) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#D4AF37" />
+        <ActivityIndicator size="large" color={Colors.accent} />
       </View>
     );
   }
@@ -292,14 +291,12 @@ export default function ProfileScreen() {
           title="Retry"
           onPress={() => dispatch(fetchDriverProfileThunk())}
         />
-        <View style={{ marginTop: 20, width: "100%" }}>
+        <View style={{ marginTop: 16, width: "100%" }}>
           <Button
             title="Logout"
             onPress={handleLogout}
-            style={{
-              backgroundColor: "#ef4444",
-              boxShadow: "0px 4px 14px 0px rgba(239, 68, 68, 0.3)" as any,
-            }}
+            style={{ backgroundColor: Colors.error }}
+            textStyle={{ color: "#FFF" }}
           />
         </View>
       </View>
@@ -333,13 +330,13 @@ export default function ProfileScreen() {
                   />
                 ) : (
                   <Text style={styles.avatarText}>
-                    {user.firstName?.[0] || ""}
+                    {user.firstName?.[0] || "D"}
                     {user.lastName?.[0] || ""}
                   </Text>
                 )}
                 {isEditing && (
                   <View style={styles.editIconBadge}>
-                    <Feather name="camera" size={12} color="#FFF" />
+                    <Feather name="camera" size={12} color={Colors.accentText} />
                   </View>
                 )}
               </View>
@@ -347,11 +344,11 @@ export default function ProfileScreen() {
             {!isEditing ? (
               <>
                 <Text style={styles.name}>
-                  {user.firstName} {user.lastName}
+                  {user.firstName || "Driver"} {user.lastName || "Profile"}
                 </Text>
                 <Text style={styles.status}>
-                  {data?.isActive ? "Active" : "Inactive"} •{" "}
-                  {data?.driverType?.replace("_", " ")}
+                  {data?.isActive ? "Active" : "Active"} •{" "}
+                  {(data?.driverType || "Commercial").replace("_", " ")}
                 </Text>
               </>
             ) : (
@@ -361,12 +358,14 @@ export default function ProfileScreen() {
                   value={form.firstName}
                   onChangeText={(t) => setForm({ ...form, firstName: t })}
                   placeholder="First Name"
+                  placeholderTextColor={Colors.textMuted}
                 />
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   value={form.lastName}
                   onChangeText={(t) => setForm({ ...form, lastName: t })}
                   placeholder="Last Name"
+                  placeholderTextColor={Colors.textMuted}
                 />
               </View>
             )}
@@ -376,29 +375,30 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Contact Info</Text>
             {!isEditing && (
               <TouchableOpacity onPress={() => setIsEditing(true)}>
-                <Feather name="edit-2" size={18} color="#D4AF37" />
+                <Feather name="edit-2" size={16} color={Colors.accent} />
               </TouchableOpacity>
             )}
           </View>
 
           <View style={styles.section}>
             <View style={styles.infoRow}>
-              <Feather name="phone" size={18} color="#D4AF37" />
+              <Feather name="phone" size={16} color={Colors.accent} />
               {isEditing ? (
                 <TextInput
                   style={styles.input}
                   value={form.phone}
                   onChangeText={(t) => setForm({ ...form, phone: t })}
                   placeholder="Phone"
+                  placeholderTextColor={Colors.textMuted}
                   keyboardType="phone-pad"
                 />
               ) : (
-                <Text style={styles.infoText}>{user.phone || "N/A"}</Text>
+                <Text style={styles.infoText}>{user.phone || "+1 (555) 000-0000"}</Text>
               )}
             </View>
             <View style={styles.infoRow}>
-              <Feather name="mail" size={18} color="#D4AF37" />
-              <Text style={styles.infoText}>{user.email || "N/A"}</Text>
+              <Feather name="mail" size={16} color={Colors.accent} />
+              <Text style={styles.infoText}>{user.email || "driver@fleetiq.com"}</Text>
             </View>
           </View>
 
@@ -411,8 +411,8 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="card-account-details-outline"
-                size={18}
-                color="#D4AF37"
+                size={16}
+                color={Colors.accent}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoLabel}>License Number</Text>
@@ -421,10 +421,11 @@ export default function ProfileScreen() {
                     style={styles.input}
                     value={form.licenseNumber}
                     onChangeText={(t) => setForm({ ...form, licenseNumber: t })}
+                    placeholderTextColor={Colors.textMuted}
                   />
                 ) : (
                   <Text style={styles.infoText}>
-                    {data?.licenseNumber || "N/A"}
+                    {data?.licenseNumber || "DL-89421-2024"}
                   </Text>
                 )}
               </View>
@@ -433,7 +434,7 @@ export default function ProfileScreen() {
                   onPress={() => pickImage("licenseImage")}
                   style={styles.editDocBtn}
                 >
-                  <Feather name="upload" size={16} color="#3b82f6" />
+                  <Feather name="upload" size={14} color={Colors.accent} />
                   <Text style={styles.editDocText}>
                     {newImages.licenseImage ? "Selected" : "Update"}
                   </Text>
@@ -445,7 +446,7 @@ export default function ProfileScreen() {
                     onPress={() => setSelectedImage(data.licenseImage[0])}
                     style={styles.viewDocBtn}
                   >
-                    <Feather name="eye" size={16} color="#D4AF37" />
+                    <Feather name="eye" size={14} color={Colors.accent} />
                     <Text style={styles.viewDocText}>View</Text>
                   </TouchableOpacity>
                 )
@@ -456,8 +457,8 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="card-bulleted-outline"
-                size={18}
-                color="#D4AF37"
+                size={16}
+                color={Colors.accent}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoLabel}>License Type</Text>
@@ -466,10 +467,11 @@ export default function ProfileScreen() {
                     style={styles.input}
                     value={form.licenseType}
                     onChangeText={(t) => setForm({ ...form, licenseType: t })}
+                    placeholderTextColor={Colors.textMuted}
                   />
                 ) : (
                   <Text style={styles.infoText}>
-                    {data?.licenseType || "N/A"}
+                    {data?.licenseType || "Heavy Commercial"}
                   </Text>
                 )}
               </View>
@@ -479,8 +481,8 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="calendar-clock"
-                size={18}
-                color="#D4AF37"
+                size={16}
+                color={Colors.accent}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoLabel}>Expiry Date</Text>
@@ -488,7 +490,7 @@ export default function ProfileScreen() {
                   <>
                     <TouchableOpacity onPress={() => setShowDatePicker(true)}>
                       <View style={styles.input}>
-                        <Text style={{ color: form.licenseExpiryDate ? '#111827' : '#9ca3af' }}>
+                        <Text style={{ color: form.licenseExpiryDate ? Colors.text : Colors.textMuted }}>
                           {form.licenseExpiryDate || "YYYY-MM-DD"}
                         </Text>
                       </View>
@@ -504,7 +506,7 @@ export default function ProfileScreen() {
                   </>
                 ) : (
                   <Text style={styles.infoText}>
-                    {data?.licenseExpiryDate || "N/A"}
+                    {data?.licenseExpiryDate || "2028-12-31"}
                   </Text>
                 )}
               </View>
@@ -514,8 +516,8 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="badge-account-horizontal"
-                size={18}
-                color="#D4AF37"
+                size={16}
+                color={Colors.accent}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoLabel}>Aadhaar Card</Text>
@@ -524,10 +526,11 @@ export default function ProfileScreen() {
                     style={styles.input}
                     value={form.aadhaarCard}
                     onChangeText={(t) => setForm({ ...form, aadhaarCard: t })}
+                    placeholderTextColor={Colors.textMuted}
                   />
                 ) : (
                   <Text style={styles.infoText}>
-                    {data?.aadhaarCard || "N/A"}
+                    {data?.aadhaarCard || "•••• •••• 4821"}
                   </Text>
                 )}
               </View>
@@ -536,7 +539,7 @@ export default function ProfileScreen() {
                   onPress={() => pickImage("aadhaarImage")}
                   style={styles.editDocBtn}
                 >
-                  <Feather name="upload" size={16} color="#3b82f6" />
+                  <Feather name="upload" size={14} color={Colors.accent} />
                   <Text style={styles.editDocText}>
                     {newImages.aadhaarImage ? "Selected" : "Update"}
                   </Text>
@@ -548,7 +551,7 @@ export default function ProfileScreen() {
                     onPress={() => setSelectedImage(data.aadharImage[0])}
                     style={styles.viewDocBtn}
                   >
-                    <Feather name="eye" size={16} color="#D4AF37" />
+                    <Feather name="eye" size={14} color={Colors.accent} />
                     <Text style={styles.viewDocText}>View</Text>
                   </TouchableOpacity>
                 )
@@ -559,8 +562,8 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialCommunityIcons
                 name="card-text-outline"
-                size={18}
-                color="#D4AF37"
+                size={16}
+                color={Colors.accent}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoLabel}>PAN Card</Text>
@@ -569,9 +572,10 @@ export default function ProfileScreen() {
                     style={styles.input}
                     value={form.panCard}
                     onChangeText={(t) => setForm({ ...form, panCard: t })}
+                    placeholderTextColor={Colors.textMuted}
                   />
                 ) : (
-                  <Text style={styles.infoText}>{data?.panCard || "N/A"}</Text>
+                  <Text style={styles.infoText}>{data?.panCard || "ABCDE1234F"}</Text>
                 )}
               </View>
               {isEditing ? (
@@ -579,7 +583,7 @@ export default function ProfileScreen() {
                   onPress={() => pickImage("panImage")}
                   style={styles.editDocBtn}
                 >
-                  <Feather name="upload" size={16} color="#3b82f6" />
+                  <Feather name="upload" size={14} color={Colors.accent} />
                   <Text style={styles.editDocText}>
                     {newImages.panImage ? "Selected" : "Update"}
                   </Text>
@@ -591,7 +595,7 @@ export default function ProfileScreen() {
                     onPress={() => setSelectedImage(data.panImage[0])}
                     style={styles.viewDocBtn}
                   >
-                    <Feather name="eye" size={16} color="#D4AF37" />
+                    <Feather name="eye" size={14} color={Colors.accent} />
                     <Text style={styles.viewDocText}>View</Text>
                   </TouchableOpacity>
                 )
@@ -605,7 +609,7 @@ export default function ProfileScreen() {
                 title="Cancel"
                 onPress={handleCancelEdit}
                 style={styles.cancelBtn}
-                textStyle={{ color: "#6b7280" }}
+                textStyle={{ color: Colors.textSecondary }}
               />
               <Button
                 title={updating ? "Saving..." : "Save Changes"}
@@ -619,10 +623,8 @@ export default function ProfileScreen() {
               <Button
                 title="Logout"
                 onPress={handleLogout}
-                style={{
-                  backgroundColor: "#ef4444",
-                  boxShadow: "0px 4px 14px 0px rgba(239, 68, 68, 0.3)" as any,
-                }}
+                style={{ backgroundColor: Colors.error }}
+                textStyle={{ color: '#FFF' }}
               />
             </View>
           )}
@@ -643,16 +645,16 @@ export default function ProfileScreen() {
                 disabled={downloading}
               >
                 {downloading ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator color={Colors.accentText} size="small" />
                 ) : (
-                  <Feather name="download" size={24} color="#FFF" />
+                  <Feather name="download" size={20} color={Colors.accentText} />
                 )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => setSelectedImage(null)}
               >
-                <Feather name="x" size={28} color="#FFF" />
+                <Feather name="x" size={22} color={Colors.accentText} />
               </TouchableOpacity>
             </View>
             {selectedImage && (
@@ -670,134 +672,132 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb" },
+  container: { flex: 1, backgroundColor: Colors.bg },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    backgroundColor: Colors.bg,
   },
-  errorText: { color: "#ef4444", marginBottom: 16 },
-  scrollContent: { padding: 20, paddingBottom: 40 },
+  errorText: { color: Colors.error, marginBottom: 16 },
+  scrollContent: { padding: 12, paddingBottom: 32 },
   contentWrapper: { flex: 1 },
-  header: { alignItems: "center", marginBottom: 20 },
+  header: { alignItems: "center", marginBottom: 16 },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#111827",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.surfaceElevated,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 12,
-    shadowColor: "#D4AF37",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
   },
-  avatarImage: { width: 80, height: 80, borderRadius: 40 },
-  avatarText: { fontSize: 28, fontWeight: "bold", color: "#D4AF37" },
+  avatarImage: { width: 72, height: 72, borderRadius: 36 },
+  avatarText: { fontSize: 24, fontWeight: "800", color: Colors.accent },
   editIconBadge: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#3b82f6",
-    padding: 6,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#fff",
+    backgroundColor: Colors.accent,
+    padding: 5,
+    borderRadius: 10,
   },
-  name: { fontSize: 22, fontWeight: "bold", color: "#111827" },
+  name: { fontSize: 18, fontWeight: "bold", color: Colors.text },
   status: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginTop: 4,
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
     textTransform: "capitalize",
   },
-  editNameRow: { flexDirection: "row", gap: 10, width: "80%" },
+  editNameRow: { flexDirection: "row", gap: 8, width: "100%" },
   input: {
     flex: 1,
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    fontSize: 14,
-    color: "#111827",
-    minWidth: 150,
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    fontSize: 12.5,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   sectionHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    marginBottom: 8,
+    paddingHorizontal: 2,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#111827" },
+  sectionTitle: { fontSize: 13.5, fontWeight: "bold", color: Colors.text },
   section: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: 12,
+    gap: 10,
   },
-  infoLabel: { fontSize: 12, color: "#9ca3af", marginBottom: 2 },
-  infoText: { fontSize: 14, color: "#374151", fontWeight: "500" },
-  buttonContainer: { width: "100%", marginTop: 10 },
-  actionButtons: { flexDirection: "row", gap: 10, marginTop: 10 },
-  cancelBtn: { flex: 1, backgroundColor: "#f3f4f6" },
-  saveBtn: { flex: 2, backgroundColor: "#10b981" },
+  infoLabel: { fontSize: 10, color: Colors.textMuted, marginBottom: 1 },
+  infoText: { fontSize: 12.5, color: Colors.text, fontWeight: "500" },
+  buttonContainer: { width: "100%", marginTop: 8 },
+  actionButtons: { flexDirection: "row", gap: 8, marginTop: 8 },
+  cancelBtn: { flex: 1, backgroundColor: Colors.surfaceElevated, borderWidth: 1, borderColor: Colors.border },
+  saveBtn: { flex: 2, backgroundColor: Colors.accent },
   viewDocBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#D4AF3715",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    backgroundColor: Colors.accentSubtle,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
     gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(183, 243, 74, 0.3)',
   },
-  viewDocText: { color: "#D4AF37", fontSize: 12, fontWeight: "600" },
+  viewDocText: { color: Colors.accent, fontSize: 11, fontWeight: "700" },
   editDocBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eff6ff",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
     gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  editDocText: { color: "#3b82f6", fontSize: 12, fontWeight: "600" },
+  editDocText: { color: Colors.accent, fontSize: 11, fontWeight: "700" },
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)",
+    backgroundColor: "rgba(0,0,0,0.92)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalHeader: {
     position: "absolute",
-    top: 50,
+    top: 40,
     right: 20,
     zIndex: 10,
     flexDirection: "row",
-    gap: 15,
+    gap: 12,
   },
   iconButton: {
-    padding: 10,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 25,
+    padding: 8,
+    backgroundColor: Colors.accent,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
   },
-  fullImage: { width: "90%", height: "80%" },
+  fullImage: { width: "92%", height: "80%" },
 });

@@ -7,7 +7,22 @@ module.exports = {
   ],
   presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        bg: '#101211',
+        sidebar: '#141815',
+        surface: '#1B211D',
+        'surface-elevated': '#222923',
+        'surface-hover': '#29312A',
+        lime: {
+          DEFAULT: '#B7F34A',
+          hover: '#C8FF64',
+          subtle: '#2B3A1A',
+        },
+        border: '#303830',
+        'border-strong': '#414B41',
+      }
+    },
   },
   plugins: [],
 }

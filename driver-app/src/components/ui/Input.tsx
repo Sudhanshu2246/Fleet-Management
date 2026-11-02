@@ -9,25 +9,26 @@ interface InputProps extends TextInputProps {
 
 export function Input({ label, icon, style, required, ...props }: InputProps) {
   return (
-    <View className="mb-4">
+    <View className="mb-3">
       {label && (
-        <Text style={{ fontSize: 12, fontWeight: '600', color: '#4B5563', letterSpacing: 0.5, marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '600', color: Colors.textSecondary, letterSpacing: 0.5, marginBottom: 4 }}>
           {label}
-          {required && <Text style={{ color: '#ef4444', marginLeft: 3 }}> *</Text>}
+          {required && <Text style={{ color: Colors.error, marginLeft: 2 }}> *</Text>}
         </Text>
       )}
       <View 
-        className="flex-row items-center border px-4 py-3"
+        className="flex-row items-center border px-3 py-2"
         style={{ 
-          backgroundColor: '#F0F4F8', 
-          borderColor: 'rgba(255, 255, 255, 0.6)',
-          borderRadius: 10,
+          backgroundColor: Colors.surfaceElevated,
+          borderColor: Colors.border,
+          borderRadius: 6,
         }}
       >
         {icon && <View className="mr-2">{icon}</View>}
         <TextInput
-          className="flex-1 text-base text-gray-900"
-          placeholderTextColor={Colors.textLight}
+          className="flex-1 text-sm"
+          style={{ color: Colors.text }}
+          placeholderTextColor={Colors.textMuted}
           {...props}
         />
       </View>

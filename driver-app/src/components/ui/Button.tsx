@@ -9,16 +9,16 @@ interface ButtonProps extends TouchableOpacityProps {
 
 export function Button({ title, loading, style, textStyle, ...props }: ButtonProps) {
   return (
-      <TouchableOpacity
-      className="w-full flex-row items-center justify-center px-5 py-4"
-      style={[{ backgroundColor: Colors.gold, borderRadius: 10, boxShadow: '0px 4px 14px 0px rgba(212, 175, 55, 0.3)' as any, elevation: 5 }, style]}
+    <TouchableOpacity
+      className="w-full flex-row items-center justify-center px-4 py-3"
+      style={[{ backgroundColor: Colors.accent, borderRadius: 6, elevation: 3 }, style]}
       disabled={loading}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color="#FFFFFF" />
+        <ActivityIndicator color={Colors.accentText} size="small" />
       ) : (
-        <Text className="text-white font-bold text-lg" style={textStyle}>{title}</Text>
+        <Text style={[{ color: Colors.accentText, fontWeight: '800', fontSize: 13 }, textStyle]}>{title}</Text>
       )}
     </TouchableOpacity>
   );

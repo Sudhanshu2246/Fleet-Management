@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FontAwesome5, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -20,19 +20,6 @@ const VEHICLE_TYPES: DropdownOption[] = [
   { value: "motorcycle", label: "Motorcycle", icon: "two-wheeler" },
   { value: "pickup", label: "Pickup Truck", icon: "local-shipping" },
   { value: "minivan", label: "Minivan", icon: "airport-shuttle" },
-  { value: "tractor", label: "Tractor", icon: "agriculture" },
-  { value: "trailer", label: "Trailer", icon: "rv-hookup" },
-  { value: "camper", label: "Camper", icon: "rv-hookup" },
-  { value: "forklift", label: "Forklift", icon: "precision-manufacturing" },
-  { value: "ambulance", label: "Ambulance", icon: "medical-services" },
-  { value: "firetruck", label: "Fire Truck", icon: "local-fire-department" },
-  { value: "police", label: "Police Car", icon: "local-police" },
-  { value: "boat", label: "Boat", icon: "directions-boat" },
-  { value: "helicopter", label: "Helicopter", icon: "flight" },
-  { value: "airplane", label: "Airplane", icon: "flight" },
-  { value: "drone", label: "Drone", icon: "airplanemode-active" },
-  { value: "scooter", label: "Scooter", icon: "electric-scooter" },
-  { value: "bicycle", label: "Bicycle", icon: "directions-bike" },
 ];
 
 export default function LoginScreen() {
@@ -56,33 +43,33 @@ export default function LoginScreen() {
         driverName,
         driverPhone: phoneNumber,
         vehicleNumber,
-        idToken: "TEST_TOKEN" // Bypassing Firebase OTP as planned
+        vehicleType,
       })).unwrap();
 
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert('Login failed', typeof error === 'string' ? error : 'Network error. Please try again later.');
+      Alert.alert('Login failed', typeof error === 'string' ? error : 'An error occurred during login.');
     }
   };
 
   return (
     <KeyboardAvoidingView 
-      style={{ flex: 1, backgroundColor: '#FAFAFA' }}
+      style={{ flex: 1, backgroundColor: Colors.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Logo & Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <View style={{ 
-              width: 32, height: 32, borderRadius: 8, 
-              backgroundColor: Colors.gold, 
+              width: 32, height: 32, borderRadius: 6,
+              backgroundColor: Colors.accent,
               alignItems: 'center', justifyContent: 'center' 
             }}>
-              <FontAwesome5 name="truck" size={14} color="#fff" />
+              <Feather name="truck" size={16} color={Colors.accentText} />
             </View>
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#111827' }}>
+            <Text style={{ fontWeight: '800', fontSize: 16, color: Colors.text }}>
               FleetIQ Driver
             </Text>
           </View>
@@ -95,7 +82,7 @@ export default function LoginScreen() {
               placeholder="John Doe"
               value={driverName}
               onChangeText={setDriverName}
-              icon={<FontAwesome5 name="user" size={15} color="#6B7280" />}
+              icon={<Feather name="user" size={15} color={Colors.textMuted} />}
               required
             />
 
@@ -105,7 +92,7 @@ export default function LoginScreen() {
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
-              icon={<Feather name="phone" size={15} color="#6B7280" />}
+              icon={<Feather name="phone" size={15} color={Colors.textMuted} />}
               required
             />
 
@@ -114,7 +101,7 @@ export default function LoginScreen() {
               placeholder="e.g. ABC-1234"
               value={vehicleNumber}
               onChangeText={setVehicleNumber}
-              icon={<Feather name="hash" size={15} color="#6B7280" />}
+              icon={<Feather name="hash" size={15} color={Colors.textMuted} />}
               required
             />
 
@@ -124,7 +111,7 @@ export default function LoginScreen() {
               value={vehicleType}
               options={VEHICLE_TYPES}
               onSelect={setVehicleType}
-              icon={<FontAwesome5 name="truck" size={15} color="#6B7280" />}
+              icon={<Feather name="truck" size={15} color={Colors.textMuted} />}
               required
             />
 
@@ -141,36 +128,31 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    padding: 24,
+    padding: 20,
     justifyContent: 'center',
   },
   content: {
     maxWidth: 500,
     width: '100%',
     alignSelf: 'center',
-    paddingTop: 40,
+    paddingVertical: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
-    color: '#111827',
-    marginBottom: 32,
+    color: Colors.text,
+    marginBottom: 20,
     letterSpacing: -0.5,
   },
   formContainer: {
     width: '100%',
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4B5563',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  phoneContainer: {
-    marginBottom: 16,
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   buttonContainer: {
-    marginTop: 16,
+    marginTop: 12,
   }
 });

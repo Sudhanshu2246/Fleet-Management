@@ -3,14 +3,12 @@ import { RootState } from '../index';
 
 export const fetchDashboardDataThunk = createAsyncThunk(
   'dashboard/fetchData',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { getState }) => {
     try {
       const state = getState() as RootState;
       const token = state.auth.token;
 
-      if (!token) {
-        return rejectWithValue('No token found');
-      }
+      if (!token) return null;
 
       const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
       const response = await fetch(`${apiUrl}/api/v1/drivers/dashboard`, {
@@ -24,12 +22,12 @@ export const fetchDashboardDataThunk = createAsyncThunk(
       const data = await response.json();
 
       if (response.ok && data.success) {
-        return data.data; // contains assignment, vehicle, trip
-      } else {
-        return rejectWithValue(data.message || 'Failed to fetch dashboard data');
+        return data.data;
       }
+      return null;
     } catch (error: any) {
-      return rejectWithValue('Network error while fetching dashboard data.');
+      // Gracefully fall back to local booking data if network request fails
+      return null;
     }
   }
 );

@@ -1,12 +1,13 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme, LogBox } from 'react-native';
+import { LogBox } from 'react-native';
 import { Provider, useDispatch } from 'react-redux';
 import { store, AppDispatch } from '../store';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { restoreSession } from '../store/slices/authSlice';
+import { StatusBar } from 'expo-status-bar';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -39,18 +40,18 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     loadSession();
   }, [dispatch]);
 
-  if (!isReady) return null; // Or return a loading spinner if you prefer
+  if (!isReady) return null;
 
   return <>{children}</>;
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   return (
     <Provider store={store}>
-      <ThemeProvider value={DefaultTheme}>
+      <ThemeProvider value={DarkTheme}>
         <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#F3F4F6' }}>
+          <StatusBar style="light" />
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#101211' }}>
             <AnimatedSplashOverlay />
             <AuthInitializer>
               <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />

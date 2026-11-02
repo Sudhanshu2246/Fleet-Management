@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Image, SafeAreaView, Linking } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Image, SafeAreaView } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -8,6 +8,7 @@ import AnimatedTabScreen from '@/components/animated-tab-screen';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { fetchVehicleDocumentsThunk } from '../../store/thunks/documentsThunks';
 import { Button } from '../../components/ui/Button';
+import { Colors } from '../../constants/Colors';
 
 export default function DocumentsScreen() {
   const dispatch = useAppDispatch();
@@ -28,7 +29,7 @@ export default function DocumentsScreen() {
     setRefreshing(false);
   }, [dispatch]);
 
-    const handleDownload = async (url: string) => {
+  const handleDownload = async (url: string) => {
     try {
       setDownloading(true);
       const filename = url.split('/').pop() || 'document.jpg';
@@ -47,13 +48,11 @@ export default function DocumentsScreen() {
   };
 
   const renderDocumentRow = (label: string, icon: any, imageUrls: string | string[] | undefined) => {
-    // Some images might be stored as a string or an array of strings in JSON
     let url = null;
     if (imageUrls) {
       if (Array.isArray(imageUrls) && imageUrls.length > 0) {
         url = imageUrls[0];
       } else if (typeof imageUrls === 'string' && imageUrls.length > 0) {
-        // Just in case it's stringified array or direct url
         try {
           const parsed = JSON.parse(imageUrls);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -67,14 +66,14 @@ export default function DocumentsScreen() {
 
     return (
       <View style={styles.infoRow}>
-        <MaterialCommunityIcons name={icon} size={20} color="#D4AF37" />
+        <MaterialCommunityIcons name={icon} size={18} color={Colors.accent} />
         <View style={{ flex: 1 }}>
           <Text style={styles.infoLabel}>{label}</Text>
           <Text style={styles.infoText}>{url ? 'Uploaded' : 'Not Uploaded'}</Text>
         </View>
         {url && (
           <TouchableOpacity onPress={() => setSelectedImage(url)} style={styles.viewDocBtn}>
-            <Feather name="eye" size={16} color="#D4AF37" />
+            <Feather name="eye" size={14} color={Colors.accent} />
             <Text style={styles.viewDocText}>View</Text>
           </TouchableOpacity>
         )}
@@ -91,7 +90,7 @@ export default function DocumentsScreen() {
     >
       {loading && !data && !refreshing ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#D4AF37" />
+          <ActivityIndicator size="large" color={Colors.accent} />
         </View>
       ) : error ? (
         <View style={styles.center}>
@@ -101,7 +100,9 @@ export default function DocumentsScreen() {
       ) : data ? (
         <View style={styles.contentWrapper}>
           <View style={styles.header}>
-            <Feather name="file-text" size={48} color="#D4AF37" style={{ marginBottom: 12 }} />
+            <View style={styles.headerIconCircle}>
+              <Feather name="file-text" size={24} color={Colors.accent} />
+            </View>
             <Text style={styles.title}>Vehicle Documents</Text>
             <Text style={styles.subtitle}>{data.name} • {data.vehicleNumber}</Text>
           </View>
@@ -113,12 +114,11 @@ export default function DocumentsScreen() {
             {renderDocumentRow('Insurance', 'shield-car', data.insuranceImage)}
             {renderDocumentRow('Pollution (PUC)', 'cloud-check', data.pollutionImage)}
             {renderDocumentRow('Other Registration Image', 'file-document-outline', data.registrationImage)}
-
           </View>
         </View>
       ) : (
         <View style={styles.center}>
-          <Feather name="info" size={48} color="#9CA3AF" style={{ marginBottom: 12 }} />
+          <Feather name="info" size={36} color={Colors.textMuted} style={{ marginBottom: 10 }} />
           <Text style={styles.emptyText}>No active vehicle assignment found.</Text>
         </View>
       )}
@@ -129,13 +129,13 @@ export default function DocumentsScreen() {
           <View style={styles.modalHeader}>
             <TouchableOpacity style={styles.iconButton} onPress={() => selectedImage && handleDownload(selectedImage)} disabled={downloading}>
               {downloading ? (
-                <ActivityIndicator color="#FFF" size="small" />
+                <ActivityIndicator color={Colors.accentText} size="small" />
               ) : (
-              <Feather name="download" size={24} color="#FFF" />
+                <Feather name="download" size={20} color={Colors.accentText} />
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => setSelectedImage(null)}>
-              <Feather name="x" size={28} color="#FFF" />
+              <Feather name="x" size={22} color={Colors.accentText} />
             </TouchableOpacity>
           </View>
           {selectedImage && (
@@ -153,24 +153,25 @@ export default function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
-  scrollContent: { padding: 20, paddingBottom: 40, flexGrow: 1 },
+  container: { flex: 1, backgroundColor: Colors.bg },
+  scrollContent: { padding: 12, paddingBottom: 32, flexGrow: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  errorText: { color: '#ef4444', marginBottom: 16 },
-  emptyText: { color: '#6B7280', fontSize: 16, textAlign: 'center' },
+  errorText: { color: Colors.error, marginBottom: 16 },
+  emptyText: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center' },
   contentWrapper: { flex: 1 },
-  header: { alignItems: 'center', marginBottom: 30, marginTop: 10 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#111827', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
-  section: { backgroundColor: '#FFF', borderRadius: 16, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginBottom: 16 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 },
-  infoLabel: { fontSize: 12, color: '#9ca3af', marginBottom: 2 },
-  infoText: { fontSize: 14, color: '#374151', fontWeight: '500' },
-  viewDocBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D4AF3715', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, gap: 4 },
-  viewDocText: { color: '#D4AF37', fontSize: 12, fontWeight: '600' },
-  modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
-  modalHeader: { position: 'absolute', top: 50, right: 20, zIndex: 10, flexDirection: 'row', gap: 15 },
-  iconButton: { padding: 10, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 25, justifyContent: 'center', alignItems: 'center', width: 48, height: 48 },
-  fullImage: { width: '90%', height: '80%' }
+  header: { alignItems: 'center', marginBottom: 20, marginTop: 10 },
+  headerIconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.surfaceElevated, alignItems: 'center', justifyContent: 'center', marginBottom: 10, borderWidth: 1, borderColor: Colors.border },
+  title: { fontSize: 18, fontWeight: 'bold', color: Colors.text, marginBottom: 2 },
+  subtitle: { fontSize: 12, color: Colors.textSecondary, fontWeight: '500' },
+  section: { backgroundColor: Colors.surface, borderRadius: 8, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: Colors.border },
+  sectionTitle: { fontSize: 13.5, fontWeight: 'bold', color: Colors.text, marginBottom: 14 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 10 },
+  infoLabel: { fontSize: 10.5, color: Colors.textMuted, marginBottom: 1 },
+  infoText: { fontSize: 13, color: Colors.text, fontWeight: '500' },
+  viewDocBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.accentSubtle, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, gap: 4, borderWidth: 1, borderColor: 'rgba(183, 243, 74, 0.3)' },
+  viewDocText: { color: Colors.accent, fontSize: 11, fontWeight: '700' },
+  modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  modalHeader: { position: 'absolute', top: 40, right: 20, zIndex: 10, flexDirection: 'row', gap: 12 },
+  iconButton: { padding: 8, backgroundColor: Colors.accent, borderRadius: 20, justifyContent: 'center', alignItems: 'center', width: 40, height: 40 },
+  fullImage: { width: '92%', height: '80%' }
 });

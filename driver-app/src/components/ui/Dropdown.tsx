@@ -29,20 +29,20 @@ export function Dropdown({ label, placeholder = 'Select an option', value, optio
       {label && (
         <Text style={styles.label}>
           {label}
-          {required && <Text style={{ color: '#ef4444', marginLeft: 3 }}> *</Text>}
+          {required && <Text style={{ color: Colors.error, marginLeft: 3 }}> *</Text>}
         </Text>
       )}
       
       <TouchableOpacity 
-        style={[styles.inputContainer, { backgroundColor: '#F0F4F8', borderColor: 'rgba(255, 255, 255, 0.6)' }]}
+        style={styles.inputContainer}
         activeOpacity={0.7}
         onPress={() => setModalVisible(true)}
       >
         {icon && <View style={styles.leftIcon}>{icon}</View>}
-        <Text style={[styles.text, !selectedOption && { color: Colors.textLight }]}>
+        <Text style={[styles.text, !selectedOption && { color: Colors.textMuted }]}>
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
-        <Feather name="chevron-down" size={20} color={Colors.textLight} />
+        <Feather name="chevron-down" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
       <Modal
@@ -54,11 +54,11 @@ export function Dropdown({ label, placeholder = 'Select an option', value, optio
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={[styles.modalContent, { backgroundColor: Colors.bg }]}>
+              <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{label || 'Select'}</Text>
                   <TouchableOpacity onPress={() => setModalVisible(false)}>
-                    <Feather name="x" size={24} color={Colors.text} />
+                    <Feather name="x" size={20} color={Colors.text} />
                   </TouchableOpacity>
                 </View>
                 
@@ -69,7 +69,7 @@ export function Dropdown({ label, placeholder = 'Select an option', value, optio
                     <TouchableOpacity
                       style={[
                         styles.optionRow,
-                        item.value === value && { backgroundColor: Colors.surface }
+                        item.value === value && { backgroundColor: Colors.accentSubtle }
                       ]}
                       onPress={() => {
                         onSelect(item.value);
@@ -79,19 +79,19 @@ export function Dropdown({ label, placeholder = 'Select an option', value, optio
                       {item.icon && (
                         <MaterialIcons 
                           name={item.icon} 
-                          size={24} 
-                          color={item.value === value ? Colors.gold : Colors.textMuted} 
+                          size={20}
+                          color={item.value === value ? Colors.accent : Colors.textMuted}
                           style={styles.optionIcon}
                         />
                       )}
                       <Text style={[
                         styles.optionText,
-                        item.value === value && { color: Colors.gold, fontWeight: 'bold' }
+                        item.value === value && { color: Colors.accent, fontWeight: 'bold' }
                       ]}>
                         {item.label}
                       </Text>
                       {item.value === value && (
-                        <Feather name="check" size={20} color={Colors.gold} />
+                        <Feather name="check" size={18} color={Colors.accent} />
                       )}
                     </TouchableOpacity>
                   )}
@@ -108,70 +108,74 @@ export function Dropdown({ label, placeholder = 'Select an option', value, optio
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#4B5563',
+    color: Colors.textSecondary,
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    height: 52,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.surfaceElevated,
+    height: 42,
   },
   leftIcon: {
     marginRight: 8,
   },
   text: {
     flex: 1,
-    fontSize: 16,
-    color: '#111827',
+    fontSize: 13,
+    color: Colors.text,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 32,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 24,
     maxHeight: '70%',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+    borderBottomColor: Colors.border,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#111827',
+    color: Colors.text,
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.02)',
+    borderBottomColor: Colors.border,
   },
   optionIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   optionText: {
     flex: 1,
-    fontSize: 16,
-    color: '#4B5563',
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
 });
